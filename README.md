@@ -1,7 +1,7 @@
 # 📊 System Tracker — Automação de Workflow
 ### Desenvolvido por: **Luiz Felipe** (Estudante de ADS)
 
-O **System Tracker** é uma solução inteligente desenvolvida para **automatizar a criação e gestão de relatórios de atividades (REATs)**. O projeto nasceu da necessidade de transformar processos manuais e repetitivos em um fluxo digital ágil, seguro e centralizado, otimizando o tempo de resposta e a precisão dos dados coletados.
+O **System Tracker** é uma solução inteligente desenvolvida para **automatizar a criação e gestão de relatórios de atividades **. O projeto nasceu da necessidade de transformar processos manuais e repetitivos em um fluxo digital ágil, seguro e centralizado, otimizando o tempo de resposta e a precisão dos dados coletados.
 
 ---
 
@@ -14,7 +14,7 @@ A ideia central é simplificar rotinas profissionais através de:
 
 ---
 
-## 🛠️ Stack Tecnológica (Nível Profissional)
+## 🛠️ Stack Tecnológica
 
 Utilizei tecnologias modernas de desenvolvimento em nuvem para garantir performance:
 
