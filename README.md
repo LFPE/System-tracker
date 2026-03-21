@@ -101,6 +101,8 @@ O backend principal agora roda diretamente a partir de `backend/src/app.ts`, sem
 ```bash
 npm run dev
 npm run build
+npm run db:local:setup
+npm run local:start
 npm run preview
 npm run deploy
 ```
@@ -109,6 +111,8 @@ npm run deploy
 
 - `npm run dev`: sobe o ambiente de desenvolvimento
 - `npm run build`: gera o build de producao
+- `npm run db:local:setup`: inicializa os arquivos locais do banco D1 em `meu_banco`
+- `npm run local:start`: prepara o banco local, gera o build e sobe a aplicacao
 - `npm run preview`: executa o build localmente com Wrangler Pages
 - `npm run deploy`: gera o build e publica
 
@@ -116,12 +120,21 @@ npm run deploy
 
 ## Como Executar Localmente
 
+### Jeito mais simples
+
+```bash
+npm install
+npm run local:start
+```
+
+### Passo a passo manual
+
 ```bash
 # 1. Instalar dependencias
 npm install
 
-# 2. Criar o banco local
-npx wrangler d1 execute DB --local --file=./migrations/0001_initial.sql --persist-to=./meu_banco
+# 2. Preparar o banco local
+npm run db:local:setup
 
 # 3. Gerar os arquivos de build
 npm run build
