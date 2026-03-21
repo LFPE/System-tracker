@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && vite build --ssr src/index.ts --outDir dist",
+    "build": "vite build && vite build --ssr backend/src/app.ts --outDir dist",
     "preview": "wrangler pages dev ./dist --local --d1 DB",
     "deploy": "npm run build && wrangler pages deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"

@@ -5,7 +5,7 @@ export default defineConfig({
   publicDir: 'frontend/public',
   plugins: [
     pages({
-      entry: 'src/index.ts'
+      entry: 'backend/src/app.ts'
     })
   ],
   build: {
