@@ -1,6 +1,3 @@
-// ══════════════════════════════════════════════
-// TRACKER — Coobrastur — API Routes: REATs
-// ══════════════════════════════════════════════
 import { Hono } from 'hono'
 import { requireAuth } from './middleware'
 
@@ -9,32 +6,43 @@ type Variables = { user: any }
 
 const reats = new Hono<{ Bindings: Bindings; Variables: Variables }>()
 
-// Aplicar auth em todas as rotas
 reats.use('*', requireAuth)
 
-// GET /api/reats — listar todos (com filtros opcionais)
 reats.get('/', async (c) => {
   const { consultor, status, data_ref, mes, q } = c.req.query()
 
   let sql = 'SELECT * FROM reats WHERE 1=1'
   const params: any[] = []
 
-  if (consultor) { sql += ' AND consultor = ?'; params.push(consultor) }
-  if (status)    { sql += ' AND status = ?';    params.push(status) }
-  if (data_ref)  { sql += ' AND data_ref = ?';  params.push(data_ref) }
+  if (consultor) {
+    sql += ' AND consultor = ?'
+    params.push(consultor)
+  }
+
+  if (status) {
+    sql += ' AND status = ?'
+    params.push(status)
+  }
+
+  if (data_ref) {
+    sql += ' AND data_ref = ?'
+    params.push(data_ref)
+  }
 
   const monthFilter = typeof mes === 'string' ? mes.trim() : ''
   if (monthFilter) {
     if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthFilter)) {
-      return c.json({ error: 'Mês inválido. Use o formato YYYY-MM.' }, 400)
+      return c.json({ error: 'Mes invalido. Use o formato YYYY-MM.' }, 400)
     }
+
     sql += ' AND data_ref LIKE ?'
     params.push(`${monthFilter}%`)
   }
+
   if (q) {
     sql += ' AND (consultor LIKE ? OR motivo LIKE ? OR analise LIKE ? OR plano LIKE ? OR texto LIKE ?)'
-    const lq = `%${q}%`
-    params.push(lq, lq, lq, lq, lq)
+    const search = `%${q}%`
+    params.push(search, search, search, search, search)
   }
 
   sql += ' ORDER BY data_ref DESC, hora ASC'
@@ -43,61 +51,56 @@ reats.get('/', async (c) => {
   return c.json({ ok: true, records: result.results })
 })
 
-// GET /api/reats/dates — listar datas únicas
 reats.get('/dates', async (c) => {
   const result = await c.env.DB.prepare(
     'SELECT DISTINCT data_ref FROM reats ORDER BY data_ref DESC'
   ).all<any>()
-  return c.json({ ok: true, dates: result.results.map((r: any) => r.data_ref) })
+
+  return c.json({ ok: true, dates: result.results.map((row: any) => row.data_ref) })
 })
 
-// GET /api/reats/consultores — listar consultores únicos
 reats.get('/consultores', async (c) => {
   const result = await c.env.DB.prepare(
     'SELECT DISTINCT consultor FROM reats ORDER BY consultor ASC'
   ).all<any>()
-  return c.json({ ok: true, consultores: result.results.map((r: any) => r.consultor) })
+
+  return c.json({ ok: true, consultores: result.results.map((row: any) => row.consultor) })
 })
 
-// POST /api/reats — salvar lote de registros de um dia
 reats.post('/', async (c) => {
   const { data_ref, records } = await c.req.json()
   if (!data_ref || !Array.isArray(records)) {
-    return c.json({ error: 'Dados inválidos' }, 400)
+    return c.json({ error: 'Dados invalidos' }, 400)
   }
 
-  // Deletar registros existentes do mesmo dia antes de inserir
   await c.env.DB.prepare('DELETE FROM reats WHERE data_ref = ?').bind(data_ref).run()
 
-  // Inserir em batch
-  const stmt = c.env.DB.prepare(`
+  const statement = c.env.DB.prepare(`
     INSERT INTO reats (data_ref, tipo, data, hora, consultor, status, revertido, motivo, plano_em_dia, plano, analise, texto)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `)
 
-  const batch = records.map((r: any) =>
-    stmt.bind(
+  const batch = records.map((record: any) =>
+    statement.bind(
       data_ref,
-      r.tipo || '',
-      r.data || '',
-      r.hora || '',
-      r.consultor || '-',
-      r.status || 'Em Tratativa',
-      r.revertido || '-',
-      r.motivo || '-',
-      r.plano_em_dia || '-',
-      r.plano || '-',
-      r.analise || '',
-      r.texto || ''
+      record.tipo || '',
+      record.data || '',
+      record.hora || '',
+      record.consultor || '-',
+      record.status || 'Em Tratativa',
+      record.revertido || '-',
+      record.motivo || '-',
+      record.plano_em_dia || '-',
+      record.plano || '-',
+      record.analise || '',
+      record.texto || ''
     )
   )
 
   await c.env.DB.batch(batch)
-
   return c.json({ ok: true, count: records.length })
 })
 
-// PUT /api/reats/:id — editar registro
 reats.put('/:id', async (c) => {
   const id = c.req.param('id')
   const { status, analise } = await c.req.json()
@@ -109,21 +112,19 @@ reats.put('/:id', async (c) => {
   return c.json({ ok: true })
 })
 
-// DELETE /api/reats/date/:data_ref — remover todos de uma data
 reats.delete('/date/:data_ref', async (c) => {
-  const data_ref = c.req.param('data_ref')
-  await c.env.DB.prepare('DELETE FROM reats WHERE data_ref = ?').bind(data_ref).run()
+  const dateRef = c.req.param('data_ref')
+  await c.env.DB.prepare('DELETE FROM reats WHERE data_ref = ?').bind(dateRef).run()
   return c.json({ ok: true })
 })
 
-// GET /api/reats/stats — estatísticas gerais
 reats.get('/stats', async (c) => {
   const { mes } = c.req.query()
   const monthFilter = typeof mes === 'string' ? mes.trim() : ''
   const hasMonthFilter = monthFilter.length > 0
 
   if (hasMonthFilter && !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthFilter)) {
-    return c.json({ error: 'Mês inválido. Use o formato YYYY-MM.' }, 400)
+    return c.json({ error: 'Mes invalido. Use o formato YYYY-MM.' }, 400)
   }
 
   const where = hasMonthFilter ? 'WHERE data_ref LIKE ?' : ''
@@ -157,42 +158,55 @@ reats.get('/stats', async (c) => {
       FROM reats ${where}
       GROUP BY data_ref
       ORDER BY data_ref DESC
-    `).bind(...whereParams).all<any>()
+    `).bind(...whereParams).all<any>(),
   ])
 
   return c.json({
     ok: true,
     totals,
     byConsultor: byConsultor.results,
-    byDate: byDate.results
+    byDate: byDate.results,
   })
 })
 
-// POST /api/reats/import-backup — importar backup JSON
 reats.post('/import-backup', async (c) => {
   const { records } = await c.req.json()
   if (!records || typeof records !== 'object') {
-    return c.json({ error: 'Formato inválido' }, 400)
+    return c.json({ error: 'Formato invalido' }, 400)
   }
 
   let count = 0
-  for (const [data_ref, recs] of Object.entries(records)) {
-    if (!Array.isArray(recs)) continue
-    await c.env.DB.prepare('DELETE FROM reats WHERE data_ref = ?').bind(data_ref).run()
+  for (const [dataRef, rows] of Object.entries(records)) {
+    if (!Array.isArray(rows)) {
+      continue
+    }
 
-    const stmt = c.env.DB.prepare(`
+    await c.env.DB.prepare('DELETE FROM reats WHERE data_ref = ?').bind(dataRef).run()
+
+    const statement = c.env.DB.prepare(`
       INSERT INTO reats (data_ref, tipo, data, hora, consultor, status, revertido, motivo, plano_em_dia, plano, analise, texto)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
 
-    const batch = (recs as any[]).map((r: any) =>
-      stmt.bind(data_ref, r.tipo||'', r.data||'', r.hora||'', r.consultor||'-',
-        r.status||'Em Tratativa', r.revertido||'-', r.motivo||'-',
-        r.plano_em_dia||'-', r.plano||'-', r.analise||'', r.texto||'')
+    const batch = rows.map((record: any) =>
+      statement.bind(
+        dataRef,
+        record.tipo || '',
+        record.data || '',
+        record.hora || '',
+        record.consultor || '-',
+        record.status || 'Em Tratativa',
+        record.revertido || '-',
+        record.motivo || '-',
+        record.plano_em_dia || '-',
+        record.plano || '-',
+        record.analise || '',
+        record.texto || ''
+      )
     )
 
     await c.env.DB.batch(batch)
-    count += recs.length
+    count += rows.length
   }
 
   return c.json({ ok: true, count })
