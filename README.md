@@ -27,8 +27,11 @@ O sistema foi pensado para reduzir trabalho manual e padronizar o acompanhamento
 
 ## Estrutura
 
-- **/src**: rotas da API, autenticacao e logica do sistema.
-- **/public**: interface visual e scripts do cliente.
+- **/backend/src**: aplicacao da API organizada em config, controllers, middlewares, models, routes, services, utils e validations.
+- **/frontend/public**: interface do sistema com assets globais e paginas organizadas por contexto.
+- **/frontend/public/assets/css**: camadas de estilo globais e tema visual.
+- **/frontend/public/assets/js**: bootstrap, utilitarios compartilhados e scripts globais.
+- **/frontend/public/pages**: modulos das telas principais do sistema.
 - **/migrations**: estrutura SQL do banco local/remoto.
 - **/dist**: arquivos gerados para execucao e deploy.
 

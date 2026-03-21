@@ -1,0 +1,44 @@
+.topbar{
+  height:72px;
+  background:rgba(255,255,255,.88);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 1px 0 rgba(15,23,42,.03);
+  backdrop-filter:blur(14px);
+  padding:0 var(--space-6);
+  gap:var(--space-4);
+}
+[data-theme="dark"] .topbar{background:rgba(18,26,43,.86)}
+.brand-mark{
+  width:42px;height:42px;border-radius:12px;
+  background:linear-gradient(135deg,#12314f,#1d5fa7);
+  border:none;box-shadow:none;color:#fff;
+}
+.brand-text h1{-webkit-text-fill-color:initial;background:none;color:var(--text);font-size:16px}
+.brand-text span{font-size:11px;color:var(--text3);margin-top:0}
+.layout{min-height:calc(100vh - 72px)}
+.sidebar{
+  width:248px;
+  top:72px;height:calc(100vh - 72px);
+  background:linear-gradient(180deg,#10273f 0%,#14324f 100%);
+  border-right:none;
+  padding:20px 14px;
+  gap:4px;
+}
+.sidebar-section{color:rgba(226,232,240,.58);font-size:10px;padding:10px 12px 6px}
+.content{padding:28px;max-width:none}
+.sec-hdr{margin-bottom:24px;gap:16px}
+.sec-title{font-size:26px;font-weight:700;color:var(--text)}
+.sec-sub{font-size:14px;color:var(--text3);margin-top:4px}
+.card,.table-wrap,.chart-wrap,.comp-card,.sat-cons-card,.hist-day-hdr,.hist-item,.filter-bar,.steps,.dash-meta-card,.modal,.spotlight-btn,.user-chip,.kpi-pill{
+  box-shadow:var(--shadow);
+}
+.card,.table-wrap,.chart-wrap,.comp-card,.sat-cons-card,.steps,.filter-bar,.modal,#spotlight{
+  background:var(--surface);
+  border:1px solid var(--border);
+}
+.dash-meta-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+}
+.dash-meta-card::before{background:linear-gradient(90deg,var(--blue),transparent)}
+.table-wrap,.chart-wrap,.card,.comp-card{border-radius:var(--rad)}
