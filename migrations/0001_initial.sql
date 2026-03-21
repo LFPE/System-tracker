@@ -54,5 +54,5 @@ CREATE INDEX IF NOT EXISTS idx_satisfacao_name ON satisfacao(name);
 -- Usuários padrão (senha: reats2026 e reats123)
 -- hash = 'h_' + djb2(salt + pass) em hex
 INSERT OR IGNORE INTO users (login, name, pass_hash, role) VALUES
-  ('admin',      'Administrador', 'h_b2f4a9c1', 'admin'),
-  ('supervisor', 'Supervisor',    'h_7e3d12f8', 'user');
+  ('admin',      'Administrador', 'h_40c6a3a7', 'admin'),
+  ('supervisor', 'Supervisor',    'h_47c7e0b1', 'user');

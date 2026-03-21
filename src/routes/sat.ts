@@ -16,8 +16,16 @@ sat.get('/', async (c) => {
   let sql = 'SELECT * FROM satisfacao WHERE 1=1'
   const params: any[] = []
 
-  if (mes)  { sql += ' AND date LIKE ?'; params.push(mes + '%') }
-  if (name) { sql += ' AND name = ?';    params.push(name) }
+  const monthFilter = typeof mes === 'string' ? mes.trim() : ''
+  if (monthFilter) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthFilter)) {
+      return c.json({ error: 'Mês inválido. Use o formato YYYY-MM.' }, 400)
+    }
+    sql += ' AND date LIKE ?'
+    params.push(`${monthFilter}%`)
+  }
+
+  if (name) { sql += ' AND name = ?'; params.push(name) }
 
   sql += ' ORDER BY date ASC'
   const result = await c.env.DB.prepare(sql).bind(...params).all<any>()
@@ -53,7 +61,15 @@ sat.post('/', async (c) => {
 // GET /api/sat/agg — dados agregados por consultor/dia
 sat.get('/agg', async (c) => {
   const { mes } = c.req.query()
-  let where = mes ? `WHERE date LIKE '${mes}%'` : ''
+  const monthFilter = typeof mes === 'string' ? mes.trim() : ''
+  const hasMonthFilter = monthFilter.length > 0
+
+  if (hasMonthFilter && !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthFilter)) {
+    return c.json({ error: 'Mês inválido. Use o formato YYYY-MM.' }, 400)
+  }
+
+  const where = hasMonthFilter ? 'WHERE date LIKE ?' : ''
+  const whereParams = hasMonthFilter ? [`${monthFilter}%`] : []
 
   const result = await c.env.DB.prepare(`
     SELECT name, day, substr(date,1,7) as month,
@@ -64,7 +80,7 @@ sat.get('/agg', async (c) => {
     FROM satisfacao ${where}
     GROUP BY name, day, month
     ORDER BY name, day
-  `).all<any>()
+  `).bind(...whereParams).all<any>()
 
   return c.json({ ok: true, records: result.results })
 })
@@ -72,7 +88,15 @@ sat.get('/agg', async (c) => {
 // GET /api/sat/totals — totais por consultor
 sat.get('/totals', async (c) => {
   const { mes } = c.req.query()
-  let where = mes ? `WHERE date LIKE '${mes}%'` : ''
+  const monthFilter = typeof mes === 'string' ? mes.trim() : ''
+  const hasMonthFilter = monthFilter.length > 0
+
+  if (hasMonthFilter && !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthFilter)) {
+    return c.json({ error: 'Mês inválido. Use o formato YYYY-MM.' }, 400)
+  }
+
+  const where = hasMonthFilter ? 'WHERE date LIKE ?' : ''
+  const whereParams = hasMonthFilter ? [`${monthFilter}%`] : []
 
   const result = await c.env.DB.prepare(`
     SELECT name,
@@ -83,7 +107,7 @@ sat.get('/totals', async (c) => {
     FROM satisfacao ${where}
     GROUP BY name
     ORDER BY name
-  `).all<any>()
+  `).bind(...whereParams).all<any>()
 
   return c.json({ ok: true, totals: result.results })
 })

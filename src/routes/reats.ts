@@ -22,7 +22,15 @@ reats.get('/', async (c) => {
   if (consultor) { sql += ' AND consultor = ?'; params.push(consultor) }
   if (status)    { sql += ' AND status = ?';    params.push(status) }
   if (data_ref)  { sql += ' AND data_ref = ?';  params.push(data_ref) }
-  if (mes)       { sql += ' AND data_ref LIKE ?'; params.push(mes + '%') }
+
+  const monthFilter = typeof mes === 'string' ? mes.trim() : ''
+  if (monthFilter) {
+    if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(monthFilter)) {
+      return c.json({ error: 'Mês inválido. Use o formato YYYY-MM.' }, 400)
+    }
+    sql += ' AND data_ref LIKE ?'
+    params.push(`${monthFilter}%`)
+  }
   if (q) {
     sql += ' AND (consultor LIKE ? OR motivo LIKE ? OR analise LIKE ? OR plano LIKE ? OR texto LIKE ?)'
     const lq = `%${q}%`
@@ -111,7 +119,15 @@ reats.delete('/date/:data_ref', async (c) => {
 // GET /api/reats/stats — estatísticas gerais
 reats.get('/stats', async (c) => {
   const { mes } = c.req.query()
-  let where = mes ? `WHERE data_ref LIKE '${mes}%'` : ''
+  const monthFilter = typeof mes === 'string' ? mes.trim() : ''
+  const hasMonthFilter = monthFilter.length > 0
+
+  if (hasMonthFilter && !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthFilter)) {
+    return c.json({ error: 'Mês inválido. Use o formato YYYY-MM.' }, 400)
+  }
+
+  const where = hasMonthFilter ? 'WHERE data_ref LIKE ?' : ''
+  const whereParams = hasMonthFilter ? [`${monthFilter}%`] : []
 
   const [totals, byConsultor, byDate] = await Promise.all([
     c.env.DB.prepare(`
@@ -121,7 +137,7 @@ reats.get('/stats', async (c) => {
         SUM(CASE WHEN status='Cancelado' THEN 1 ELSE 0 END) as cancelados,
         SUM(CASE WHEN status='Em Tratativa' THEN 1 ELSE 0 END) as tratativas
       FROM reats ${where}
-    `).first<any>(),
+    `).bind(...whereParams).first<any>(),
 
     c.env.DB.prepare(`
       SELECT consultor,
@@ -132,7 +148,7 @@ reats.get('/stats', async (c) => {
       FROM reats ${where}
       GROUP BY consultor
       ORDER BY total DESC
-    `).all<any>(),
+    `).bind(...whereParams).all<any>(),
 
     c.env.DB.prepare(`
       SELECT data_ref,
@@ -141,7 +157,7 @@ reats.get('/stats', async (c) => {
       FROM reats ${where}
       GROUP BY data_ref
       ORDER BY data_ref DESC
-    `).all<any>()
+    `).bind(...whereParams).all<any>()
   ])
 
   return c.json({
