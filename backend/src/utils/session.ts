@@ -1,8 +1,9 @@
 import type { Context } from 'hono'
 import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
-import { sessionConfig } from '../config/env'
-import type { AuthUser } from '../models/auth.model'
-import { hashPass } from './hash'
+import type { Bindings } from '../config/bindings'
+import { getSessionConfig } from '../config/env'
+import type { AuthUser, Role } from '../models/auth.model'
+import { signSessionValue } from './hash'
 
 type SessionPayload = {
   v: 1
@@ -11,25 +12,30 @@ type SessionPayload = {
   marker: string
 }
 
-function signSessionPayload(payload: string) {
-  return hashPass(`session:${payload}`)
+async function signSessionPayload(payload: string, env?: Partial<Bindings>) {
+  return signSessionValue(payload, env)
 }
 
-function decodePayload(token: string) {
+async function decodePayload(token: string, env?: Partial<Bindings>) {
   const [encoded, signature] = token.split('.')
   if (!encoded || !signature) return null
 
-  const payload = atob(encoded)
-  if (signSessionPayload(payload) !== signature) return null
+  try {
+    const payload = atob(encoded)
+    if ((await signSessionPayload(payload, env)) !== signature) return null
 
-  const parsed = JSON.parse(payload) as SessionPayload
-  if (!parsed?.login || !parsed?.exp || !parsed?.marker || parsed.v !== 1) return null
-  if (parsed.exp <= Date.now()) return null
+    const parsed = JSON.parse(payload) as SessionPayload
+    if (!parsed?.login || !parsed?.exp || !parsed?.marker || parsed.v !== 1) return null
+    if (parsed.exp <= Date.now()) return null
 
-  return parsed
+    return parsed
+  } catch {
+    return null
+  }
 }
 
-export function createSessionToken(user: { login: string; pass_hash: string }) {
+export async function createSessionToken(user: { login: string; pass_hash: string }, env?: Partial<Bindings>) {
+  const sessionConfig = getSessionConfig(env)
   const payload: SessionPayload = {
     v: 1,
     login: user.login,
@@ -37,14 +43,16 @@ export function createSessionToken(user: { login: string; pass_hash: string }) {
     marker: user.pass_hash.slice(-12),
   }
   const raw = JSON.stringify(payload)
-  return `${btoa(raw)}.${signSessionPayload(raw)}`
+  return `${btoa(raw)}.${await signSessionPayload(raw, env)}`
 }
 
-export function readSessionToken(c: Pick<Context, 'req'>) {
-  return getCookie(c as Context, sessionConfig.cookieName)
+export function readSessionToken(c: Pick<Context, 'req' | 'env'>) {
+  return getCookie(c as Context, getSessionConfig(c.env).cookieName)
 }
 
-export function writeSessionCookie(c: Context, token: string) {
+export function writeSessionCookie(c: Context<{ Bindings: Bindings }>, token: string) {
+  const sessionConfig = getSessionConfig(c.env)
+
   setCookie(c, sessionConfig.cookieName, token, {
     httpOnly: true,
     sameSite: sessionConfig.sameSite,
@@ -54,14 +62,16 @@ export function writeSessionCookie(c: Context, token: string) {
   })
 }
 
-export function clearSessionCookie(c: Context) {
+export function clearSessionCookie(c: Context<{ Bindings: Bindings }>) {
+  const sessionConfig = getSessionConfig(c.env)
   deleteCookie(c, sessionConfig.cookieName, { path: sessionConfig.path })
 }
 
-export function readSessionPayload(token: string) {
-  return decodePayload(token)
+
+export function readSessionPayload(token: string, env?: Partial<Bindings>) {
+  return decodePayload(token, env)
 }
 
-export function toAuthUser(user: any): AuthUser {
+export function toAuthUser(user: { id: number; login: string; name: string; role: Role }): AuthUser {
   return { id: user.id, login: user.login, name: user.name, role: user.role }
 }

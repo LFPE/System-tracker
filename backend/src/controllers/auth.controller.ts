@@ -1,22 +1,22 @@
-﻿import { clearSessionCookie, readSessionToken, writeSessionCookie } from '../utils/session'
-import { loginUser, getSessionUser } from '../services/auth.service'
+import { clearSessionCookie, readSessionToken, writeSessionCookie } from '../utils/session'
+import { getSessionUser, loginUser } from '../services/auth.service'
 import { validateLoginPayload } from '../validations/auth.validation'
 import type { PublicAppContext } from '../models/app.model'
-import { jsonError, jsonOk } from '../utils/http'
+import { AppError, getErrorStatus, jsonError, jsonOk, readJsonBody } from '../utils/http'
 
 export async function loginController(c: PublicAppContext) {
   try {
-    const { login, pass } = validateLoginPayload(await c.req.json())
-    const result = await loginUser(c.env.DB, login, pass)
+    const { login, pass } = validateLoginPayload(await readJsonBody<Record<string, unknown>>(c, 'Credenciais invalidas'))
+    const result = await loginUser(c.env.DB, c.env, login, pass)
 
     if (!result) {
-      return jsonError(c, 401, new Error('Usuário ou senha incorretos'), 'Usuário ou senha incorretos')
+      return jsonError(c, 401, new AppError(401, 'Usuario ou senha incorretos'), 'Usuario ou senha incorretos')
     }
 
     writeSessionCookie(c, result.token)
     return jsonOk(c, { user: result.user })
   } catch (error) {
-    return jsonError(c, 400, error, 'Credenciais inválidas')
+    return jsonError(c, getErrorStatus(error, 400), error, 'Credenciais invalidas')
   }
 }
 
@@ -27,14 +27,21 @@ export function logoutController(c: PublicAppContext) {
 
 export async function meController(c: PublicAppContext) {
   const token = readSessionToken(c)
-  if (!token) return jsonError(c, 401, new Error('Não autenticado'), 'Não autenticado')
+  if (!token) {
+    clearSessionCookie(c)
+    return jsonError(c, 401, new AppError(401, 'Nao autenticado'), 'Nao autenticado')
+  }
 
   try {
-    const user = await getSessionUser(c.env.DB, token)
-    if (!user) return jsonError(c, 401, new Error('Sessão inválida'), 'Sessão inválida')
+    const user = await getSessionUser(c.env.DB, c.env, token)
+    if (!user) {
+      clearSessionCookie(c)
+      return jsonError(c, 401, new AppError(401, 'Sessao invalida'), 'Sessao invalida')
+    }
+
     return jsonOk(c, { user })
-  } catch {
-    return jsonError(c, 401, new Error('Sessão inválida'), 'Sessão inválida')
+  } catch (error) {
+    clearSessionCookie(c)
+    return jsonError(c, getErrorStatus(error, 401), error, 'Sessao invalida')
   }
 }
-

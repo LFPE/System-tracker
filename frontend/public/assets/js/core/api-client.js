@@ -1,3 +1,12 @@
+class ApiError extends Error {
+  constructor(message, status, payload) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = status;
+    this.payload = payload;
+  }
+}
+
 export function createApiClient(basePath = '/api') {
   async function request(method, path, body) {
     const options = {
@@ -14,7 +23,13 @@ export function createApiClient(basePath = '/api') {
     const data = await response.json().catch(() => ({}));
 
     if (!response.ok) {
-      throw new Error(data.error || `Erro ${response.status}`);
+      const error = new ApiError(data.error || `Erro ${response.status}`, response.status, data);
+
+      if (response.status === 401 && path !== '/auth/login') {
+        window.dispatchEvent(new CustomEvent('tracker:unauthorized', { detail: error }));
+      }
+
+      throw error;
     }
 
     return data;
@@ -28,3 +43,5 @@ export function createApiClient(basePath = '/api') {
     del: (path) => request('DELETE', path),
   };
 }
+
+export { ApiError };

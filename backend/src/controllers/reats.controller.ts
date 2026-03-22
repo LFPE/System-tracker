@@ -15,8 +15,9 @@ import {
   validateReatsQuery,
   validateReatUpdatePayload,
 } from '../validations/reats.validation'
+import { validateDateRef, validateRouteId } from '../validations/shared.validation'
 import type { AppContext } from '../models/app.model'
-import { jsonError, jsonOk } from '../utils/http'
+import { getErrorStatus, jsonError, jsonOk, readJsonBody } from '../utils/http'
 
 export async function getReatsController(c: AppContext) {
   try {
@@ -24,7 +25,7 @@ export async function getReatsController(c: AppContext) {
     const records = await listReats(c.env.DB, filters)
     return jsonOk(c, { records })
   } catch (error) {
-    return jsonError(c, 400, error, 'Erro ao listar reats')
+    return jsonError(c, getErrorStatus(error, 400), error, 'Erro ao listar reats')
   }
 }
 
@@ -33,7 +34,7 @@ export async function exportBackupController(c: AppContext) {
     const backup = await exportSystemBackup(c.env.DB)
     return jsonOk(c, backup)
   } catch (error) {
-    return jsonError(c, 500, error, 'Erro ao exportar backup')
+    return jsonError(c, getErrorStatus(error, 500), error, 'Erro ao exportar backup')
   }
 }
 
@@ -49,29 +50,37 @@ export async function getReatConsultoresController(c: AppContext) {
 
 export async function createReatsController(c: AppContext) {
   try {
-    const { data_ref, records } = validateReatsCreatePayload(await c.req.json())
+    const { data_ref, records } = validateReatsCreatePayload(
+      await readJsonBody<Record<string, unknown>>(c, 'Dados invalidos'),
+    )
     const count = await replaceReatsForDate(c.env.DB, data_ref, records)
     return jsonOk(c, { count })
   } catch (error) {
-    return jsonError(c, 400, error, 'Dados invalidos')
+    return jsonError(c, getErrorStatus(error, 400), error, 'Dados invalidos')
   }
 }
 
 export async function updateReatController(c: AppContext) {
   try {
-    const id = c.req.param('id')
-    const { status, analise } = validateReatUpdatePayload(await c.req.json())
+    const id = validateRouteId(c.req.param('id'), 'Reat')
+    const { status, analise } = validateReatUpdatePayload(
+      await readJsonBody<Record<string, unknown>>(c, 'Dados invalidos'),
+    )
     await updateReat(c.env.DB, id, status, analise)
     return jsonOk(c)
   } catch (error) {
-    return jsonError(c, 400, error, 'Dados invalidos')
+    return jsonError(c, getErrorStatus(error, 400), error, 'Dados invalidos')
   }
 }
 
 export async function deleteReatsByDateController(c: AppContext) {
-  const dateRef = c.req.param('data_ref')
-  await deleteReatsByDate(c.env.DB, dateRef)
-  return jsonOk(c)
+  try {
+    const dateRef = validateDateRef(c.req.param('data_ref'))
+    await deleteReatsByDate(c.env.DB, dateRef)
+    return jsonOk(c)
+  } catch (error) {
+    return jsonError(c, getErrorStatus(error, 400), error, 'Data invalida')
+  }
 }
 
 export async function getReatsStatsController(c: AppContext) {
@@ -80,16 +89,16 @@ export async function getReatsStatsController(c: AppContext) {
     const stats = await getReatsStats(c.env.DB, mes)
     return jsonOk(c, stats)
   } catch (error) {
-    return jsonError(c, 400, error, 'Erro ao consultar stats')
+    return jsonError(c, getErrorStatus(error, 400), error, 'Erro ao consultar stats')
   }
 }
 
 export async function importBackupController(c: AppContext) {
   try {
-    const { backup } = validateBackupPayload(await c.req.json())
+    const { backup } = validateBackupPayload(await readJsonBody<Record<string, unknown>>(c, 'Formato invalido'))
     const summary = await importSystemBackup(c.env.DB, backup)
     return jsonOk(c, summary)
   } catch (error) {
-    return jsonError(c, 400, error, 'Formato invalido')
+    return jsonError(c, getErrorStatus(error, 400), error, 'Formato invalido')
   }
 }

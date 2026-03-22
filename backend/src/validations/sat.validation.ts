@@ -1,14 +1,22 @@
 import type { SatCategory, SatRecordInput } from '../models/sat.model'
-import { validateMonthFilter } from './shared.validation'
 import { trimString } from '../utils/input'
+import { AppError } from '../utils/http'
+import { validateMonthFilter } from './shared.validation'
 
+const ATTENTION_LABELS = ['ATENÇÃO', 'ATENCAO', 'ATENÃ‡ÃƒO']
 const SAT_CATEGORIES: SatCategory[] = ['BOM', 'ATENÇÃO', 'RUIM']
 
-function validateSatCategory(value: unknown) {
-  const category = trimString(value)
-  if (!SAT_CATEGORIES.includes(category as SatCategory)) {
-    throw new Error('Categoria de satisfação inválida')
+function normalizeSatCategory(value: unknown) {
+  const category = trimString(value).toUpperCase()
+
+  if (ATTENTION_LABELS.includes(category)) {
+    return 'ATENÇÃO' as SatCategory
   }
+
+  if (!SAT_CATEGORIES.includes(category as SatCategory)) {
+    throw new AppError(400, 'Categoria de satisfacao invalida')
+  }
+
   return category as SatCategory
 }
 
@@ -19,14 +27,18 @@ function validateSatRecord(record: SatRecordInput, month: string) {
   const day = Number(record?.day)
   const phone = trimString(record?.phone)
   const score = Number(record?.score)
-  const cat = validateSatCategory(record?.cat)
+  const cat = normalizeSatCategory(record?.cat)
 
-  if (!Number.isInteger(ramal) || !name || !date || !Number.isInteger(day) || Number.isNaN(score)) {
-    throw new Error('Registro de satisfação inválido')
+  if (!Number.isInteger(ramal) || !name || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new AppError(400, 'Registro de satisfacao invalido')
+  }
+
+  if (!Number.isInteger(day) || day < 1 || day > 31 || !Number.isFinite(score)) {
+    throw new AppError(400, 'Registro de satisfacao invalido')
   }
 
   if (!date.startsWith(`${month}-`)) {
-    throw new Error('Os registros de satisfação devem pertencer ao mês selecionado')
+    throw new AppError(400, 'Os registros de satisfacao devem pertencer ao mes selecionado')
   }
 
   return { ramal, name, date, day, phone, score, cat }
@@ -39,12 +51,12 @@ export function validateSatQuery(query: Record<string, string | undefined>) {
   }
 }
 
-export function validateSatCreatePayload(body: any) {
+export function validateSatCreatePayload(body: Record<string, unknown>) {
   const mes = validateMonthFilter(body?.mes)
   const rawRecords = Array.isArray(body?.records) ? (body.records as SatRecordInput[]) : null
 
   if (!mes || !rawRecords?.length) {
-    throw new Error('Mês e registros são obrigatórios')
+    throw new AppError(400, 'Mes e registros sao obrigatorios')
   }
 
   return { mes, records: rawRecords.map((record) => validateSatRecord(record, mes)) }

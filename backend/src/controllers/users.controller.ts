@@ -1,7 +1,8 @@
 import { createUser, deleteUserById, listUsers, updateOwnPassword } from '../services/users.service'
 import { validateOwnPasswordPayload, validateUserCreatePayload } from '../validations/users.validation'
+import { validateRouteId } from '../validations/shared.validation'
 import type { AppContext } from '../models/app.model'
-import { getErrorMessage, jsonError, jsonOk } from '../utils/http'
+import { getErrorStatus, jsonError, jsonOk, readJsonBody } from '../utils/http'
 
 export async function getUsersController(c: AppContext) {
   const users = await listUsers(c.env.DB)
@@ -10,34 +11,34 @@ export async function getUsersController(c: AppContext) {
 
 export async function createUserController(c: AppContext) {
   try {
-    const payload = validateUserCreatePayload(await c.req.json())
-    await createUser(c.env.DB, payload)
+    const payload = validateUserCreatePayload(await readJsonBody<Record<string, unknown>>(c, 'Dados invalidos'))
+    await createUser(c.env.DB, c.env, payload)
     return jsonOk(c)
   } catch (error) {
-    const message = getErrorMessage(error, 'Erro ao criar usuário')
-    const status = message === 'Login já existe' ? 409 : 400
-    return jsonError(c, status, error, message)
+    return jsonError(c, getErrorStatus(error, 400), error, 'Erro ao criar usuario')
   }
 }
 
 export async function deleteUserController(c: AppContext) {
   try {
-    await deleteUserById(c.env.DB, c.req.param('id'))
+    const id = validateRouteId(c.req.param('id'), 'Usuario')
+    await deleteUserById(c.env.DB, id)
     return jsonOk(c)
   } catch (error) {
-    const message = getErrorMessage(error, 'Erro ao remover usuário')
-    const status = message === 'Não é possível remover o admin' ? 403 : 400
-    return jsonError(c, status, error, message)
+    return jsonError(c, getErrorStatus(error, 400), error, 'Erro ao remover usuario')
   }
 }
 
 export async function updateOwnPasswordController(c: AppContext) {
   try {
     const me = c.get('user')
-    const { current_pass, pass } = validateOwnPasswordPayload(await c.req.json())
-    await updateOwnPassword(c.env.DB, me.id, current_pass, pass)
+    const { current_pass, pass } = validateOwnPasswordPayload(
+      await readJsonBody<Record<string, unknown>>(c, 'Dados invalidos'),
+    )
+
+    await updateOwnPassword(c.env.DB, c.env, me.id, current_pass, pass)
     return jsonOk(c)
   } catch (error) {
-    return jsonError(c, 400, error, 'Erro ao atualizar senha')
+    return jsonError(c, getErrorStatus(error, 400), error, 'Erro ao atualizar senha')
   }
 }

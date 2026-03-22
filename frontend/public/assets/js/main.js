@@ -37,7 +37,7 @@ function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('theme', t);
   const btn = document.getElementById('theme-icon');
-  if (btn) btn.textContent = t === 'dark' ? '🌙' : '☀️';
+  if (btn) btn.textContent = t === 'dark' ? '\u{1F319}' : '\u2600\uFE0F';
 }
 
 function toggleTheme() {
@@ -187,15 +187,15 @@ const exportModule = createExportModule({
 const { hdlExcel, hdlPDF, hdlExportBackup, hdlImportBackup } = exportModule;
 
 const SPOTLIGHT_PAGES = [
-  { id: 'dashboard', icon: '🏠', label: 'Dashboard', sub: 'Visão geral' },
-  { id: 'import', icon: '📥', label: 'Importar REATs', sub: 'Processar novo arquivo' },
-  { id: 'history', icon: '📋', label: 'Histórico', sub: 'Todos os registros' },
-  { id: 'stats', icon: '📊', label: 'Estatísticas', sub: 'Rankings e métricas' },
-  { id: 'charts', icon: '📈', label: 'Gráficos', sub: 'Análise visual' },
-  { id: 'heatmap', icon: '🔥', label: 'Heatmap', sub: 'Horários de reversão' },
-  { id: 'sat', icon: '⭐', label: 'Satisfação', sub: 'Avaliações dos clientes' },
-  { id: 'ranking', icon: '🏆', label: 'Ranking', sub: 'Pódio da equipe' },
-  { id: 'users', icon: '⚙️', label: 'Usuários', sub: 'Gerenciar acessos' },
+  { id: 'dashboard', icon: '\u{1F3E0}', label: 'Dashboard', sub: 'Vis\u00e3o geral' },
+  { id: 'import', icon: '\u{1F4E5}', label: 'Importar REATs', sub: 'Processar novo arquivo' },
+  { id: 'history', icon: '\u{1F4CB}', label: 'Hist\u00f3rico', sub: 'Todos os registros' },
+  { id: 'stats', icon: '\u{1F4CA}', label: 'Estat\u00edsticas', sub: 'Rankings e m\u00e9tricas' },
+  { id: 'charts', icon: '\u{1F4C8}', label: 'Gr\u00e1ficos', sub: 'An\u00e1lise visual' },
+  { id: 'heatmap', icon: '\u{1F525}', label: 'Heatmap', sub: 'Hor\u00e1rios de revers\u00e3o' },
+  { id: 'sat', icon: '\u2B50', label: 'Satisfa\u00e7\u00e3o', sub: 'Avalia\u00e7\u00f5es dos clientes' },
+  { id: 'ranking', icon: '\u{1F3C6}', label: 'Ranking', sub: 'P\u00f3dio da equipe' },
+  { id: 'users', icon: '\u2699\uFE0F', label: 'Usu\u00e1rios', sub: 'Gerenciar acessos' },
 ];
 let spotIdx = 0;
 
@@ -215,7 +215,7 @@ function filterSpotlight(q) {
   const pages = SPOTLIGHT_PAGES.filter(p => !q || p.label.toLowerCase().includes(q.toLowerCase()));
   spotIdx = 0;
   document.getElementById('spotlight-results').innerHTML =
-    '<div class="spotlight-section">Navegação</div>' +
+    '<div class="spotlight-section">Navega\u00e7\u00e3o</div>' +
     pages.map((p, i) => `
       <div class="spotlight-item${i === 0 ? ' active' : ''}" onclick="switchTab('${p.id}',null);closeSpotlight()">
         <div class="spotlight-item-icon" style="background:var(--surface2)">${p.icon}</div>
@@ -281,17 +281,17 @@ async function doLogin() {
   const btn = document.getElementById('btn-login-submit');
   errEl.classList.remove('show');
   btn.disabled = true;
-  btn.textContent = 'Entrando…';
+  btn.textContent = 'Entrando\u2026';
   try {
     const d = await api.post('/auth/login', { login, pass });
     S.user = d.user;
     onLoginSuccess();
   } catch (e) {
-    errEl.textContent = `⚠️ ${e.message}`;
+    errEl.textContent = `\u26A0\uFE0F ${e.message}`;
     errEl.classList.add('show');
   } finally {
     btn.disabled = false;
-    btn.textContent = 'Entrar →';
+    btn.textContent = 'Entrar \u2192';
   }
 }
 
@@ -334,6 +334,22 @@ function showLoginScreen() {
   document.getElementById('app').style.display = 'none';
 }
 
+function handleUnauthorized() {
+  const hadSession = Boolean(S.user);
+  S.user = null;
+  S.records = [];
+  S.satRecords = [];
+  S.satMonths = [];
+  closeModal();
+  showLoginScreen();
+
+  if (hadSession) {
+    showToast('Sua sessao expirou. Faca login novamente.', 'warn');
+  }
+}
+
+window.addEventListener('tracker:unauthorized', handleUnauthorized);
+
 async function doLogout() {
   await api.post('/auth/logout', {}).catch(() => {});
   S.user = null;
@@ -345,7 +361,7 @@ async function doLogout() {
 }
 
 function openAccModal() {
-  document.getElementById('acc-name').textContent = S.user?.name || '—';
+  document.getElementById('acc-name').textContent = S.user?.name || '\u2014';
   document.getElementById('acc-login-lbl').textContent = `@${S.user?.login || ''}`;
   document.getElementById('acc-current-pass').value = '';
   document.getElementById('acc-pass').value = '';
@@ -387,7 +403,9 @@ async function loadAllData() {
     renderDashboard();
     updateTopbarKpis();
   } catch (e) {
-    showToast(`Erro ao carregar dados: ${e.message}`, 'err');
+    if (e?.status !== 401) {
+      showToast(`Erro ao carregar dados: ${e.message}`, 'err');
+    }
   } finally {
     hideLoading();
   }

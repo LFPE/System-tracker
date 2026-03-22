@@ -1,7 +1,14 @@
 import type { D1Database } from '@cloudflare/workers-types'
+import type { Role } from '../models/auth.model'
 import type { BackupUserInput, ReatRecordInput, SystemBackupPayload } from '../models/reats.model'
 import type { SatRecordInput } from '../models/sat.model'
-import { normalizeLogin, trimString } from '../utils/input'
+import { trimString, normalizeLogin } from '../utils/input'
+import { AppError } from '../utils/http'
+import { replaceSatRecordsForMonth } from './sat.service'
+
+function normalizeBackupRole(value: unknown): Role {
+  return trimString(value) === 'admin' ? 'admin' : 'user'
+}
 
 export async function listReats(db: D1Database, filters: {
   consultor: string
@@ -82,7 +89,7 @@ export async function replaceReatsForDate(db: D1Database, data_ref: string, reco
       record.plano_em_dia || '-',
       record.plano || '-',
       record.analise || '',
-      record.texto || ''
+      record.texto || '',
     )
   )
 
@@ -93,10 +100,14 @@ export async function replaceReatsForDate(db: D1Database, data_ref: string, reco
   return records.length
 }
 
-export async function updateReat(db: D1Database, id: string, status: string, analise: string) {
-  await db.prepare(
+export async function updateReat(db: D1Database, id: number, status: string, analise: string) {
+  const result = await db.prepare(
     'UPDATE reats SET status = ?, analise = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?'
   ).bind(status, analise, id).run()
+
+  if (!result.meta.changes) {
+    throw new AppError(404, 'Reat nao encontrado')
+  }
 }
 
 export async function deleteReatsByDate(db: D1Database, dataRef: string) {
@@ -145,35 +156,11 @@ export async function getReatsStats(db: D1Database, month: string) {
   }
 }
 
-async function replaceSatForMonth(db: D1Database, month: string, records: SatRecordInput[]) {
-  await db.prepare('DELETE FROM satisfacao WHERE date LIKE ?').bind(`${month}%`).run()
-
-  const statement = db.prepare(`
-    INSERT INTO satisfacao (ramal, name, date, day, phone, score, cat)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `)
-
-  const batch = records.map((record) =>
-    statement.bind(
-      record.ramal,
-      record.name,
-      record.date,
-      record.day,
-      record.phone || '',
-      record.score,
-      record.cat
-    )
+async function upsertBackupUsers(db: D1Database, users: BackupUserInput[]) {
+  const validUsers = users.filter(
+    (user) => normalizeLogin(user?.login) && trimString(user?.name) && trimString(user?.pass_hash),
   )
 
-  if (batch.length) {
-    await db.batch(batch)
-  }
-
-  return records.length
-}
-
-async function upsertBackupUsers(db: D1Database, users: BackupUserInput[]) {
-  const validUsers = users.filter((user) => normalizeLogin(user?.login) && trimString(user?.name) && trimString(user?.pass_hash))
   if (!validUsers.length) return 0
 
   const statement = db.prepare(`
@@ -190,7 +177,7 @@ async function upsertBackupUsers(db: D1Database, users: BackupUserInput[]) {
       normalizeLogin(user.login),
       trimString(user.name),
       trimString(user.pass_hash),
-      trimString(user.role) || 'user'
+      normalizeBackupRole(user.role),
     )
   )
 
@@ -238,7 +225,7 @@ export async function importSystemBackup(db: D1Database, backup: SystemBackupPay
   }
 
   for (const [month, rows] of Object.entries(satByMonth)) {
-    sat += await replaceSatForMonth(db, month, rows)
+    sat += await replaceSatRecordsForMonth(db, month, rows)
   }
 
   const users = await upsertBackupUsers(db, backup.users || [])

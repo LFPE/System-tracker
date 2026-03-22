@@ -1,23 +1,18 @@
 import type { ReatBackupPayload, ReatRecordInput, ReatStatus, SystemBackupPayload } from '../models/reats.model'
-import { validateMonthFilter } from './shared.validation'
 import { trimString } from '../utils/input'
+import { AppError } from '../utils/http'
+import { validateDateRef, validateMonthFilter } from './shared.validation'
 
 const REAT_STATUSES: ReatStatus[] = ['Revertido', 'Em Tratativa', 'Cancelado']
-
-function validateDateRef(value: unknown) {
-  const dateRef = trimString(value)
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateRef)) {
-    throw new Error('Data de referência inválida. Use o formato YYYY-MM-DD.')
-  }
-  return dateRef
-}
 
 function normalizeReatStatus(value: unknown, fallback: ReatStatus = 'Em Tratativa') {
   const status = trimString(value)
   if (!status) return fallback
+
   if (!REAT_STATUSES.includes(status as ReatStatus)) {
-    throw new Error('Status inválido')
+    throw new AppError(400, 'Status invalido')
   }
+
   return status as ReatStatus
 }
 
@@ -37,41 +32,47 @@ function sanitizeReatRecord(record: ReatRecordInput) {
   }
 }
 
+function validateStatusFilter(value: unknown) {
+  const status = trimString(value)
+  if (!status) return ''
+  return normalizeReatStatus(status)
+}
+
 export function validateReatsQuery(query: Record<string, string | undefined>) {
   return {
     consultor: trimString(query.consultor),
-    status: trimString(query.status),
-    data_ref: trimString(query.data_ref),
+    status: validateStatusFilter(query.status),
+    data_ref: query.data_ref ? validateDateRef(query.data_ref) : '',
     mes: validateMonthFilter(query.mes),
     q: trimString(query.q),
   }
 }
 
-export function validateReatsCreatePayload(body: any) {
+export function validateReatsCreatePayload(body: Record<string, unknown>) {
   const data_ref = validateDateRef(body?.data_ref)
   const rawRecords = Array.isArray(body?.records) ? (body.records as ReatRecordInput[]) : null
 
   if (!rawRecords?.length) {
-    throw new Error('Dados invalidos')
+    throw new AppError(400, 'Envie ao menos um registro para importacao')
   }
 
   return { data_ref, records: rawRecords.map(sanitizeReatRecord) }
 }
 
-export function validateReatUpdatePayload(body: any) {
+export function validateReatUpdatePayload(body: Record<string, unknown>) {
   return {
     status: normalizeReatStatus(body?.status, 'Em Tratativa'),
     analise: typeof body?.analise === 'string' ? body.analise.trim() : '',
   }
 }
 
-export function validateBackupPayload(body: any) {
+export function validateBackupPayload(body: Record<string, unknown>) {
   const records = body?.records && typeof body.records === 'object' && !Array.isArray(body.records)
     ? body.records
     : body
 
   if (!records || typeof records !== 'object' || Array.isArray(records)) {
-    throw new Error('Formato invalido')
+    throw new AppError(400, 'Formato de backup invalido')
   }
 
   return {

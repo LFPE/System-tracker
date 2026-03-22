@@ -1,5 +1,7 @@
 import type { D1Database } from '@cloudflare/workers-types'
-import type { SatRecordInput } from '../models/sat.model'
+import type { SatCategory, SatRecordInput } from '../models/sat.model'
+
+const ATTENTION_MATCHERS = ['ATENÇÃO', 'ATENÃ‡ÃƒO', 'ATENCAO']
 
 export async function listSatRecords(db: D1Database, filters: { mes: string; name: string }) {
   let sql = 'SELECT * FROM satisfacao WHERE 1=1'
@@ -29,7 +31,7 @@ export async function listSatMonths(db: D1Database) {
   return result.results.map((row: any) => row.month)
 }
 
-export async function createSatRecords(db: D1Database, month: string, records: SatRecordInput[]) {
+export async function replaceSatRecordsForMonth(db: D1Database, month: string, records: SatRecordInput[]) {
   await db.prepare('DELETE FROM satisfacao WHERE date LIKE ?').bind(`${month}%`).run()
 
   const statement = db.prepare(`
@@ -45,7 +47,7 @@ export async function createSatRecords(db: D1Database, month: string, records: S
       record.day,
       record.phone || '',
       record.score,
-      record.cat
+      record.cat as SatCategory,
     )
   )
 
@@ -56,20 +58,25 @@ export async function createSatRecords(db: D1Database, month: string, records: S
   return records.length
 }
 
+export async function createSatRecords(db: D1Database, month: string, records: SatRecordInput[]) {
+  return replaceSatRecordsForMonth(db, month, records)
+}
+
 export async function getSatAggregation(db: D1Database, month: string) {
   const where = month ? 'WHERE date LIKE ?' : ''
   const whereParams = month ? [`${month}%`] : []
+  const attentionSql = ATTENTION_MATCHERS.map(() => '?').join(', ')
 
   const result = await db.prepare(`
     SELECT name, day, substr(date,1,7) as month,
       SUM(CASE WHEN cat='BOM' THEN 1 ELSE 0 END) as bom,
-      SUM(CASE WHEN cat='ATENÇÃO' THEN 1 ELSE 0 END) as atencao,
+      SUM(CASE WHEN cat IN (${attentionSql}) THEN 1 ELSE 0 END) as atencao,
       SUM(CASE WHEN cat='RUIM' THEN 1 ELSE 0 END) as ruim,
       GROUP_CONCAT(CASE WHEN cat='RUIM' AND phone!='' THEN phone END) as phones_ruim
     FROM satisfacao ${where}
     GROUP BY name, day, month
     ORDER BY name, day
-  `).bind(...whereParams).all<any>()
+  `).bind(...ATTENTION_MATCHERS, ...whereParams).all<any>()
 
   return result.results
 }
@@ -77,17 +84,18 @@ export async function getSatAggregation(db: D1Database, month: string) {
 export async function getSatTotals(db: D1Database, month: string) {
   const where = month ? 'WHERE date LIKE ?' : ''
   const whereParams = month ? [`${month}%`] : []
+  const attentionSql = ATTENTION_MATCHERS.map(() => '?').join(', ')
 
   const result = await db.prepare(`
     SELECT name,
       SUM(CASE WHEN cat='BOM' THEN 1 ELSE 0 END) as bom,
-      SUM(CASE WHEN cat='ATENÇÃO' THEN 1 ELSE 0 END) as atencao,
+      SUM(CASE WHEN cat IN (${attentionSql}) THEN 1 ELSE 0 END) as atencao,
       SUM(CASE WHEN cat='RUIM' THEN 1 ELSE 0 END) as ruim,
       COUNT(*) as total
     FROM satisfacao ${where}
     GROUP BY name
     ORDER BY name
-  `).bind(...whereParams).all<any>()
+  `).bind(...ATTENTION_MATCHERS, ...whereParams).all<any>()
 
   return result.results
 }

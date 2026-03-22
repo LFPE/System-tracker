@@ -1,10 +1,10 @@
-﻿export type Role = 'admin' | 'user'
+export type Role = 'admin' | 'user'
 
 export type AuthUser = {
   id: number
   login: string
   name: string
-  role: Role | string
+  role: Role
 }
 
 export type AppVariables = {
