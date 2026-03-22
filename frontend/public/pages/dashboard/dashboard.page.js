@@ -1,4 +1,4 @@
-﻿import { setSelectOptions } from '../../assets/js/core/dom.js';
+import { setSelectOptions } from '../../assets/js/core/dom.js';
 import { renderEmptyState, renderMutedText } from '../../assets/js/shared/templates.js';
 
 export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }) {
@@ -19,6 +19,16 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
   }
 
 
+  function buildFallbackSatMonths() {
+    const months = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i += 1) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      months.push(`${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`);
+    }
+    return months;
+  }
+
   function populateAllFilters() {
     const consultores = [...new Set(S.records.map(r => r.consultor).filter(Boolean))].sort();
     const meses = [...new Set(S.records.map(r => r.data_ref?.slice(0, 7)).filter(Boolean))].sort().reverse();
@@ -35,8 +45,15 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     const datas = [...new Set(S.records.map(r => r.data_ref).filter(Boolean))].sort().reverse();
     setSelectOptions('f-data', '<option value="">Todas as datas</option>' + datas.map(d => `<option value="${d}">${fmtDate(d)}</option>`).join(''), false);
 
-    const satMeses = [...new Set(S.satRecords.map(r => r.date?.slice(0, 7)).filter(Boolean))].sort().reverse();
+    const satMesAtual = document.getElementById('sat-mes-sel')?.value || '';
+    const satMeses = [...new Set([
+      ...S.satMonths,
+      ...S.satRecords.map(r => r.date?.slice(0, 7)).filter(Boolean),
+      ...buildFallbackSatMonths(),
+    ])].sort().reverse();
     setSelectOptions('sat-mes-sel', '<option value="">Todos os períodos</option>' + satMeses.map(m => `<option value="${m}">${fmtMes(m)}</option>`).join(''), false);
+    const satMesSel = document.getElementById('sat-mes-sel');
+    if (satMesSel) satMesSel.value = satMesAtual && satMeses.includes(satMesAtual) ? satMesAtual : '';
   }
 
   function updateTopbarKpis() {
@@ -48,6 +65,8 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     if (S.satRecords.length) {
       const bom = S.satRecords.filter(r => r.cat === 'BOM').length;
       setText('hdr-sat', `${Math.round(bom / S.satRecords.length * 100)}%`);
+    } else {
+      setText('hdr-sat', '—');
     }
   }
 
@@ -67,10 +86,10 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     }));
 
     setHTML('dash-kpis', !total ? renderMutedText('Nenhum dado. Importe um arquivo REAT.') : `
-      <div class="kpi-card kpi-gold"><div class="kpi-icon">📋</div><div class="kpi-val gold">${total}</div><div class="kpi-label">Total de REATs</div></div>
-      <div class="kpi-card kpi-green"><div class="kpi-icon">✅</div><div class="kpi-val green">${rev}</div><div class="kpi-label">Revertidos</div></div>
-      <div class="kpi-card kpi-yellow"><div class="kpi-icon">⏳</div><div class="kpi-val yellow">${trat}</div><div class="kpi-label">Em Tratativa</div></div>
-      <div class="kpi-card kpi-red"><div class="kpi-icon">❌</div><div class="kpi-val red">${can}</div><div class="kpi-label">Cancelados</div></div>
+      <div class="kpi-card kpi-gold"><div class="kpi-icon">RT</div><div class="kpi-val gold">${total}</div><div class="kpi-label">Total de REATs</div></div>
+      <div class="kpi-card kpi-green"><div class="kpi-icon">RV</div><div class="kpi-val green">${rev}</div><div class="kpi-label">Revertidos</div></div>
+      <div class="kpi-card kpi-yellow"><div class="kpi-icon">TR</div><div class="kpi-val yellow">${trat}</div><div class="kpi-label">Em Tratativa</div></div>
+      <div class="kpi-card kpi-red"><div class="kpi-icon">CN</div><div class="kpi-val red">${can}</div><div class="kpi-label">Cancelados</div></div>
     `);
 
     setText('dash-taxa-val', `${taxa}%`);
@@ -91,11 +110,11 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
       .slice(0, 5);
 
     setHTML('dash-top-cons', top.length ? top.map((t, i) => `
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-        <div style="width:24px;height:24px;border-radius:50%;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${i + 1}</div>
-        <div style="flex:1;font-size:12px;font-weight:600">${t.n}</div>
-        <div style="font-size:12px;color:var(--green2);font-weight:700">${t.taxa}%</div>
-        <div style="font-size:10px;color:var(--text3)">${t.total} reg</div>
+      <div class="rank-row">
+        <div class="rank-row-index">${i + 1}</div>
+        <div class="rank-row-name">${t.n}</div>
+        <div class="rank-row-value">${t.taxa}%</div>
+        <div class="rank-row-meta">${t.total} reg</div>
       </div>`).join('') : '');
 
     renderDashComp();
@@ -109,13 +128,13 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
       if (datesRev.includes(d.toISOString().slice(0, 10))) streak += 1;
       else if (i > 0) break;
     }
-    setText('streak-badge', `🔥 ${streak} dia${streak !== 1 ? 's' : ''} seguido${streak !== 1 ? 's' : ''}`);
+    setText('streak-badge', `Sequência ativa: ${streak} dia${streak !== 1 ? 's' : ''} seguido${streak !== 1 ? 's' : ''}`);
 
     const alerts = document.getElementById('perf-alerts');
     if (alerts) {
       const low = Object.entries(byC).filter(([, d]) => d.total >= 5 && d.rev / d.total < 0.3);
       alerts.innerHTML = low.map(([n, d]) => `
-        <div class="perf-alert">⚠️ <strong>${n}</strong> está com taxa baixa: ${(d.rev / d.total * 100).toFixed(1)}% (${d.rev}/${d.total})</div>
+        <div class="perf-alert"><strong>${n}</strong> está com taxa baixa: ${(d.rev / d.total * 100).toFixed(1)}% (${d.rev}/${d.total})</div>
       `).join('');
     }
 
@@ -135,10 +154,11 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
 
     setHTML('dash-comp-cards', rows.map(([n, d]) => {
       const taxa = d.total ? +(d.rev / d.total * 100).toFixed(1) : 0;
+      const tone = taxa >= 40 ? 'is-good' : taxa >= 30 ? 'is-mid' : 'is-low';
       return `<div class="comp-card">
-        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">${n.split(' ')[0]}</div>
-        <div class="comp-val" style="color:${taxa >= 40 ? 'var(--green2)' : taxa >= 30 ? 'var(--yellow2)' : 'var(--red2)'}">${taxa}%</div>
-        <div style="font-size:10px;color:var(--text3);margin-top:4px">${d.rev}/${d.total}</div>
+        <div class="comp-card-label">${n.split(' ')[0]}</div>
+        <div class="comp-val ${tone}">${taxa}%</div>
+        <div class="comp-card-meta">${d.rev}/${d.total}</div>
       </div>`;
     }).join('') || '');
   }
@@ -148,14 +168,14 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     if (!el) return;
 
     const achs = [
-      { icon: '🌟', name: 'Primeira Reversão', desc: 'Reverteu o 1º REAT', unlocked: rev >= 1 },
-      { icon: '🎯', name: 'Meta Atingida', desc: 'Taxa ≥ 40% de reversão', unlocked: taxa >= 40 },
-      { icon: '💯', name: 'Centenário', desc: '100 REATs importados', unlocked: total >= 100 },
-      { icon: '🏆', name: 'Elite', desc: 'Taxa ≥ 60%', unlocked: taxa >= 60 },
-      { icon: '⚡', name: 'Equipe Completa', desc: '5+ consultores ativos', unlocked: numConss >= 5 },
-      { icon: '🔥', name: 'Em Chamas', desc: '200+ REATs importados', unlocked: total >= 200 },
-      { icon: '👑', name: 'Lenda', desc: 'Taxa ≥ 80%', unlocked: taxa >= 80 },
-      { icon: '📈', name: 'Crescimento', desc: '50+ revertidos', unlocked: rev >= 50 },
+      { icon: 'PR', name: 'Primeira Reversão', desc: 'Reverteu o 1º REAT', unlocked: rev >= 1 },
+      { icon: 'MT', name: 'Meta Atingida', desc: 'Taxa ≥ 40% de reversão', unlocked: taxa >= 40 },
+      { icon: 'CT', name: 'Centenário', desc: '100 REATs importados', unlocked: total >= 100 },
+      { icon: 'EL', name: 'Elite', desc: 'Taxa ≥ 60%', unlocked: taxa >= 60 },
+      { icon: 'EC', name: 'Equipe Completa', desc: '5+ consultores ativos', unlocked: numConss >= 5 },
+      { icon: 'CH', name: 'Em Chamas', desc: '200+ REATs importados', unlocked: total >= 200 },
+      { icon: 'LD', name: 'Lenda', desc: 'Taxa ≥ 80%', unlocked: taxa >= 80 },
+      { icon: 'CR', name: 'Crescimento', desc: '50+ revertidos', unlocked: rev >= 50 },
     ];
 
     el.innerHTML = achs.map(a => `
@@ -176,10 +196,10 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     const taxa = total ? +(rev / total * 100).toFixed(1) : 0;
 
     setHTML('big-stats', `
-      <div class="kpi-card kpi-gold"><div class="kpi-icon">📋</div><div class="kpi-val gold">${total}</div><div class="kpi-label">Total</div></div>
-      <div class="kpi-card kpi-green"><div class="kpi-icon">✅</div><div class="kpi-val green">${rev}</div><div class="kpi-label">Revertidos</div></div>
-      <div class="kpi-card kpi-yellow"><div class="kpi-icon">⏳</div><div class="kpi-val yellow">${trat}</div><div class="kpi-label">Em Tratativa</div></div>
-      <div class="kpi-card kpi-red"><div class="kpi-icon">❌</div><div class="kpi-val red">${can}</div><div class="kpi-label">Cancelados</div></div>
+      <div class="kpi-card kpi-gold"><div class="kpi-icon">RT</div><div class="kpi-val gold">${total}</div><div class="kpi-label">Total</div></div>
+      <div class="kpi-card kpi-green"><div class="kpi-icon">RV</div><div class="kpi-val green">${rev}</div><div class="kpi-label">Revertidos</div></div>
+      <div class="kpi-card kpi-yellow"><div class="kpi-icon">TR</div><div class="kpi-val yellow">${trat}</div><div class="kpi-label">Em Tratativa</div></div>
+      <div class="kpi-card kpi-red"><div class="kpi-icon">CN</div><div class="kpi-val red">${can}</div><div class="kpi-label">Cancelados</div></div>
     `);
 
     setText('taxa-geral', `${taxa}%`);
@@ -194,7 +214,7 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     if (alertsEl) {
       const low = Object.entries(byC).filter(([, d]) => d.total >= 5 && d.rev / d.total < 0.3);
       alertsEl.innerHTML = low.map(([n, d]) => `
-        <div class="alert-banner">⚠️ <strong>${n}</strong> com taxa baixa: ${(d.rev / d.total * 100).toFixed(1)}% (${d.rev}/${d.total})</div>
+        <div class="alert-banner"><strong>${n}</strong> com taxa baixa: ${(d.rev / d.total * 100).toFixed(1)}% (${d.rev}/${d.total})</div>
       `).join('');
     }
 
@@ -210,7 +230,7 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     }).map(([n, d], i) => {
       const tx = d.total ? +(d.rev / d.total * 100).toFixed(1) : 0;
       return `<tr>
-        <td>${i + 1}</td><td><strong>${d.total >= 5 && tx < 30 ? '⚠️ ' : ''}${n}</strong></td>
+        <td>${i + 1}</td><td><strong>${n}</strong></td>
         <td style="text-align:center">${d.total}</td>
         <td style="text-align:center;color:var(--green2)">${d.rev}</td>
         <td style="text-align:center;color:var(--yellow2)">${d.trat}</td>
@@ -335,25 +355,27 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     });
     const max = Math.max(...Object.values(grid), 1);
 
-    el.innerHTML = `<div style="display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin-bottom:8px">
+    el.innerHTML = `<div class="heatmap-grid">
       ${Array.from({ length: 24 }, (_, h) => {
         const v = grid[h] || 0;
         const int = v / max;
         const bg = `rgba(201,168,76,${(0.08 + int * 0.9).toFixed(2)})`;
         const tc = int > 0.55 ? '#fff' : 'rgba(241,245,249,.55)';
-        return `<div class="heatmap-cell" style="height:54px;background:${bg};color:${tc}" title="${h}h: ${v} reversões">
-          <div style="font-size:10px;font-weight:700">${String(h).padStart(2, '0')}h</div>
-          <div style="font-size:12px;font-weight:800">${v || ''}</div>
+        return `<div class="heatmap-cell" style="height:54px;background:${bg};color:${tc}" title="${h}h: ${v} revers?es">
+          <div class="heatmap-hour">${String(h).padStart(2, '0')}h</div>
+          <div class="heatmap-total">${v || ''}</div>
         </div>`;
+      }).join('')}
+    </div>`;
       }).join('')}
     </div>`;
 
     const top = Object.entries(grid).sort((a, b) => b[1] - a[1]).slice(0, 3);
     setHTML('best-hours', top.map(([h, v], i) => `
-      <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border)">
-        <div style="font-size:20px">${['🥇', '🥈', '🥉'][i]}</div>
-        <div style="font-family:'Space Grotesk',sans-serif;font-size:18px;font-weight:700;color:var(--gold2)">${String(h).padStart(2, '0')}h</div>
-        <div style="font-size:12px;color:var(--text3)">${v} reversão${v !== 1 ? 'ões' : ''}</div>
+      <div class="best-hour-row">
+        <div class="best-hour-rank">${i + 1}</div>
+        <div class="best-hour-time">${String(h).padStart(2, '0')}h</div>
+        <div class="best-hour-count">${v} revers?o${v !== 1 ? '?es' : ''}</div>
       </div>`).join(''));
 
     const turnos = [
@@ -365,10 +387,10 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     setHTML('shift-stats', turnos.map(t => {
       const total = t.horas.reduce((sum, h) => sum + (grid[h] || 0), 0);
       const pct = recs.length ? Math.round(total / recs.length * 100) : 0;
-      return `<div style="margin-bottom:12px">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
-          <span style="color:var(--text2)">${t.nome}</span>
-          <span style="font-weight:700">${total} (${pct}%)</span>
+      return `<div class="shift-stat-row">
+        <div class="shift-stat-head">
+          <span class="shift-stat-name">${t.nome}</span>
+          <span class="shift-stat-value">${total} (${pct}%)</span>
         </div>
         <div class="prog-bar"><div class="prog-fill" style="width:${pct}%"></div></div>
       </div>`;
@@ -397,28 +419,26 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
 
     el.innerHTML = sorted.map(([n, d], i) => {
       const taxa = d.total ? +(d.rev / d.total * 100).toFixed(1) : 0;
-      const medals = ['🥇', '🥈', '🥉'];
       return `<tr>
-        <td>${medals[i] || i + 1}</td>
+        <td class="table-cell-center">${i + 1}</td>
         <td><strong>${n}</strong></td>
-        <td style="text-align:center">${d.total}</td>
-        <td style="text-align:center;color:var(--green2)">${d.rev}</td>
-        <td style="text-align:center;color:var(--yellow2)">${d.trat}</td>
-        <td style="text-align:center;color:var(--red2)">${d.can}</td>
-        <td style="text-align:center"><span class="tag ${taxa >= 40 ? 'tag-rev' : taxa >= 30 ? 'tag-trat' : 'tag-can'}">${taxa}%</span></td>
+        <td class="table-cell-center">${d.total}</td>
+        <td class="table-cell-center cell-positive">${d.rev}</td>
+        <td class="table-cell-center cell-warning">${d.trat}</td>
+        <td class="table-cell-center cell-danger">${d.can}</td>
+        <td class="table-cell-center"><span class="tag ${taxa >= 40 ? 'tag-rev' : taxa >= 30 ? 'tag-trat' : 'tag-can'}">${taxa}%</span></td>
       </tr>`;
     }).join('');
 
     if (podium && sorted.length >= 1) {
       const top3 = sorted.slice(0, 3);
-      const bg = ['var(--goldbg)', 'rgba(192,192,192,.1)', 'rgba(205,127,50,.1)'];
-      podium.innerHTML = `<div class="g3" style="margin-bottom:18px">${top3.map(([n, d], i) => {
+      podium.innerHTML = `<div class="g3 ranking-podium-grid">${top3.map(([n, d], i) => {
         const taxa = d.total ? +(d.rev / d.total * 100).toFixed(1) : 0;
-        return `<div style="background:${bg[i]};border:1px solid var(--border${i === 0 ? '2' : ''});border-radius:var(--rad);padding:24px;text-align:center">
-          <div style="font-size:40px;margin-bottom:8px">${['🥇', '🥈', '🥉'][i]}</div>
-          <div style="font-family:'Space Grotesk',sans-serif;font-size:16px;font-weight:700;margin-bottom:8px">${n}</div>
-          <div style="font-size:28px;font-weight:800;color:${i === 0 ? 'var(--gold2)' : 'var(--text)'}">${taxa}%</div>
-          <div style="font-size:11px;color:var(--text3);margin-top:4px">${d.rev} revert. / ${d.total} total</div>
+        return `<div class="podium-card podium-${i + 1}">
+          <div class="podium-rank">${i + 1}</div>
+          <div class="podium-name">${n}</div>
+          <div class="podium-score">${taxa}%</div>
+          <div class="podium-meta">${d.rev} revert. / ${d.total} total</div>
         </div>`;
       }).join('')}</div>`;
     }
@@ -439,5 +459,6 @@ export function createDashboardModule({ S, setText, setHTML, _groupByConsultor }
     renderRanking,
   };
 }
+
 
 

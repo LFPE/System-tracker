@@ -1,4 +1,4 @@
-﻿import { downloadBlob } from '../../assets/js/shared/download.js';
+import { downloadBlob } from '../../assets/js/shared/download.js';
 
 export function createExportModule({
   S,
@@ -78,18 +78,20 @@ export function createExportModule({
 
   async function hdlExportBackup() {
     try {
-      const d = await api.get('/reats');
-      const grouped = {};
-      (d.records || []).forEach(r => {
-        if (!grouped[r.data_ref]) grouped[r.data_ref] = [];
-        grouped[r.data_ref].push(r);
-      });
-      const json = JSON.stringify({ version: 2, exported: new Date().toISOString(), records: grouped }, null, 2);
+      const d = await api.get('/reats/backup');
+      const payload = {
+        version: d.version,
+        exported: d.exported,
+        records: d.records || {},
+        sat: d.sat || [],
+        users: d.users || [],
+      };
+      const json = JSON.stringify(payload, null, 2);
       downloadBlob(
         new Blob([json], { type: 'application/json' }),
         `tracker_backup_${new Date().toISOString().slice(0, 10)}.json`
       );
-      showToast('Backup exportado!');
+      showToast('Backup completo exportado!');
     } catch (e) {
       showToast(`Erro: ${e.message}`, 'err');
     }
@@ -105,13 +107,19 @@ export function createExportModule({
       const records = data.records || data;
       if (!records || typeof records !== 'object') throw new Error('Formato de backup inválido');
       showLoading();
-      await api.post('/reats/import-backup', { records });
-      const d = await api.get('/reats');
-      S.records = d.records || [];
+      const result = await api.post('/reats/import-backup', data.records ? data : { records });
+      const [reatsData, satData, satMonthsData] = await Promise.all([
+        api.get('/reats'),
+        api.get('/sat'),
+        api.get('/sat/months'),
+      ]);
+      S.records = reatsData.records || [];
+      S.satRecords = satData.records || [];
+      S.satMonths = satMonthsData.months || [];
       populateAllFilters();
       renderDashboard();
       updateTopbarKpis();
-      showToast('Backup importado com sucesso!');
+      showToast(`Backup importado! REATs: ${result.reats || 0} | Satisfação: ${result.sat || 0} | Usuários: ${result.users || 0}`);
     } catch (e) {
       showToast(`Erro: ${e.message}`, 'err');
     } finally {

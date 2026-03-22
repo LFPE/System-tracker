@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR" data-theme="light">
 <head>
 <meta charset="UTF-8"/>
@@ -22,7 +22,7 @@
 <div id="spotlight-bg" onclick="closeSpotlight()">
   <div id="spotlight" onclick="event.stopPropagation()">
     <div class="spotlight-input-wrap">
-      <span>??</span>
+      <span class="spotlight-prefix">Ir</span>
       <input type="text" id="spotlight-input" placeholder="Buscar aba ou ação..." oninput="filterSpotlight(this.value)" onkeydown="spotlightKey(event)" autocomplete="off"/>
       <span class="spotlight-esc">ESC</span>
     </div>
@@ -50,7 +50,7 @@
       <h2>Bem-vindo de volta</h2>
       <p>Entre com suas credenciais para acessar o sistema</p>
     </div>
-    <div class="login-err" id="login-err">?? Usuário ou senha incorretos.</div>
+    <div class="login-err" id="login-err">Usuario ou senha incorretos.</div>
     <div class="lf">
       <label for="li-user">Usuário</label>
       <div class="lf-input-wrap">
@@ -65,7 +65,7 @@
         <input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
     </div>
-    <button class="btn-login" id="btn-login-submit" onclick="doLogin()">Entrar ?</button>
+    <button class="btn-login" id="btn-login-submit" onclick="doLogin()">Entrar</button>
     <div class="login-hint" onclick="showToast('Entre em contato com o administrador.','warn')">Esqueceu a senha?</div>
   </div>
 </div>
@@ -79,8 +79,8 @@
     </div>
     <div class="topbar-div"></div>
     <button class="spotlight-btn" onclick="openSpotlight()">
-      <span>??</span> Buscar ou navegar...
-      <span class="spotlight-btn-kb">?K</span>
+      <span class="spotlight-prefix">Ir</span> Buscar ou navegar...
+      <span class="spotlight-btn-kb">Ctrl K</span>
     </button>
     <div class="topbar-div"></div>
     <div class="kpi-pill"><div class="kv blue" id="hdr-total">0</div><div class="kl">Registros</div></div>
@@ -88,10 +88,10 @@
     <div class="kpi-pill"><div class="kv gold" id="hdr-sat">—</div><div class="kl">Satisfação</div></div>
     <div class="topbar-spacer"></div>
     <div class="flex topbar-actions">
-      <button class="tb-btn gold" onclick="hdlExcel()">? Excel</button>
-      <button class="tb-btn" onclick="hdlPDF()">?? PDF</button>
-      <button class="tb-btn" onclick="hdlExportBackup()">?? Backup</button>
-      <button class="tb-btn" onclick="toggleTheme()" id="theme-icon">??</button>
+      <button class="tb-btn gold" onclick="hdlExcel()">Exportar Excel</button>
+      <button class="tb-btn" onclick="hdlPDF()">Gerar PDF</button>
+      <button class="tb-btn" id="btn-backup-top" onclick="hdlExportBackup()">Backup</button>
+      <button class="tb-btn" onclick="toggleTheme()" id="theme-icon">Tema</button>
     </div>
     <div class="topbar-div"></div>
     <div class="user-chip" onclick="openAccModal()">
@@ -99,40 +99,40 @@
       <span class="user-name" id="user-disp">—</span>
     </div>
     <div class="clock" id="clock">00:00</div>
-    <button class="hamburger" onclick="openSpotlight()">?</button>
+    <button class="hamburger" onclick="openSpotlight()">Menu</button>
   </div>
 
   <div class="layout">
     <div class="sidebar">
       <div class="sidebar-section">Principal</div>
-      <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard',this)"><span class="nav-icon">??</span> Dashboard</button>
-      <button class="nav-item" id="nav-import" onclick="switchTab('import',this)"><span class="nav-icon">??</span> Importar</button>
-      <button class="nav-item" id="nav-history" onclick="switchTab('history',this)"><span class="nav-icon">??</span> Histórico</button>
+      <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard',this)"><span class="nav-icon">DB</span> Dashboard</button>
+      <button class="nav-item" id="nav-import" onclick="switchTab('import',this)"><span class="nav-icon">IM</span> Importar</button>
+      <button class="nav-item" id="nav-history" onclick="switchTab('history',this)"><span class="nav-icon">HI</span> Histórico</button>
       <div class="sidebar-section">Análise</div>
-      <button class="nav-item" id="nav-stats" onclick="switchTab('stats',this)"><span class="nav-icon">??</span> Estatísticas</button>
-      <button class="nav-item" id="nav-charts" onclick="switchTab('charts',this)"><span class="nav-icon">??</span> Gráficos</button>
-      <button class="nav-item" id="nav-heatmap" onclick="switchTab('heatmap',this)"><span class="nav-icon">??</span> Heatmap</button>
+      <button class="nav-item" id="nav-stats" onclick="switchTab('stats',this)"><span class="nav-icon">ES</span> Estatísticas</button>
+      <button class="nav-item" id="nav-charts" onclick="switchTab('charts',this)"><span class="nav-icon">GR</span> Gráficos</button>
+      <button class="nav-item" id="nav-heatmap" onclick="switchTab('heatmap',this)"><span class="nav-icon">HM</span> Heatmap</button>
       <div class="sidebar-section">Equipe</div>
-      <button class="nav-item" id="nav-sat" onclick="switchTab('sat',this)"><span class="nav-icon">?</span> Satisfação</button>
-      <button class="nav-item" id="nav-ranking" onclick="switchTab('ranking',this)"><span class="nav-icon">??</span> Ranking</button>
+      <button class="nav-item" id="nav-sat" onclick="switchTab('sat',this)"><span class="nav-icon">ST</span> Satisfação</button>
+      <button class="nav-item" id="nav-ranking" onclick="switchTab('ranking',this)"><span class="nav-icon">RK</span> Ranking</button>
       <div class="sidebar-section">Sistema</div>
-      <button class="nav-item" id="nav-users" onclick="switchTab('users',this)"><span class="nav-icon">??</span> Usuários</button>
+      <button class="nav-item" id="nav-users" onclick="switchTab('users',this)"><span class="nav-icon">US</span> Usuários</button>
       <div class="sidebar-bottom">
-        <button class="sidebar-export-btn" onclick="hdlExcel()">?? Exportar Excel</button>
-        <button class="sidebar-export-btn" onclick="hdlExportBackup()">?? Backup</button>
+        <button class="sidebar-export-btn" onclick="hdlExcel()">Exportar Excel</button>
+        <button class="sidebar-export-btn" id="btn-backup-side" onclick="hdlExportBackup()">Backup</button>
       </div>
     </div>
 
     <div class="content">
       <!-- DASHBOARD -->
-      <div id="tab-dashboard">
+      <div id="tab-dashboard" class="app-page page-dashboard">
         <div class="sec-hdr">
           <div>
-            <div class="dash-hello">Olá, <span id="dash-name">—</span> ??</div>
+            <div class="dash-hello">Olá, <span id="dash-name">—</span></div>
             <div class="sec-sub" id="dash-date-sub">—</div>
           </div>
           <div class="flex">
-            <div class="streak-badge" id="streak-badge">?? 0 dias seguidos</div>
+            <div class="streak-badge" id="streak-badge">0 dias seguidos</div>
           </div>
         </div>
         <div id="perf-alerts"></div>
@@ -153,26 +153,26 @@
             <div class="prog-bar"><div class="prog-fill u-w-0" id="dash-prog"></div></div>
           </div>
           <div class="card">
-            <div class="card-title">?? Top Consultores</div>
+            <div class="card-title">Top Consultores</div>
             <div id="dash-top-cons"></div>
           </div>
         </div>
         <div class="card u-mb-18">
           <div class="flex-between u-mb-14">
-            <div class="card-title card-title-inline">?? Comparativo Mensal</div>
+            <div class="card-title card-title-inline">Comparativo Mensal</div>
             <select id="dash-comp-mes" class="select-compact" onchange="renderDashComp()"></select>
           </div>
           <div class="g4" id="dash-comp-cards"></div>
         </div>
         <div class="card">
-          <div class="card-title">??? Conquistas da Equipe</div>
+          <div class="card-title">Conquistas da Equipe</div>
           <div class="g4" id="dash-achievements"></div>
         </div>
       </div>
 
       <!-- IMPORTAR -->
-      <div id="tab-import" class="hidden">
-        <div class="sec-hdr"><div><div class="sec-title">?? Importar REATs</div><div class="sec-sub">Cole o texto do sistema e salve os registros do dia</div></div></div>
+      <div id="tab-import" class="app-page page-import hidden">
+        <div class="sec-hdr"><div><div class="sec-title">Importar REATs</div><div class="sec-sub">Cole o texto do sistema e salve os registros do dia</div></div></div>
         <div class="steps">
           <div class="step-dot done" id="sc1">1</div><span class="step-lbl step-lbl-active" id="sl1">Data</span>
           <div class="step-line" id="ln1"></div>
@@ -184,79 +184,79 @@
           <div class="g2">
             <div class="stack-col-14">
               <div class="card">
-                <div class="card-title">?? Data do Relatório</div>
+                <div class="card-title">Data do Relatório</div>
                 <input type="date" id="date-input" class="u-w-full"/>
-                <p class="hint-note">?? Normalmente o dia anterior ao atual</p>
+                <p class="hint-note">Use normalmente o dia anterior ao atual</p>
               </div>
               <div class="card card-flex-1">
-                <div class="card-title">?? Cole o texto do sistema</div>
+                <div class="card-title">Cole o texto do sistema</div>
                 <textarea id="raw-text" class="textarea-reat" placeholder="Cole aqui o texto copiado do sistema de REATs..."></textarea>
                 <div class="flex u-mt-10">
-                  <button class="btn btn-primary u-flex-1-center" onclick="hdlParse()">?? Analisar Texto</button>
-                  <button class="btn btn-ghost" onclick="clearForm()">???</button>
+                  <button class="btn btn-primary u-flex-1-center" onclick="hdlParse()">Analisar texto</button>
+                  <button class="btn btn-ghost" onclick="clearForm()">Limpar</button>
                 </div>
               </div>
             </div>
             <div class="card card-column">
-              <div class="card-title" id="prev-title">?? Preview dos registros</div>
+              <div class="card-title" id="prev-title">Preview dos registros</div>
               <div id="prev-empty" class="preview-empty">
-                <div class="empty-icon-lg">??</div>
+                <div class="empty-icon-lg">REAT</div>
                 <div class="helper-copy">Cole o texto e clique em<br/><strong>"Analisar Texto"</strong></div>
               </div>
               <div id="prev-content" class="hidden">
                 <div class="g3 preview-stats" id="prev-stats"></div>
                 <div id="prev-list" class="preview-list"></div>
-                <button class="btn btn-success btn-full-wide" id="btn-save" onclick="hdlSave()">?? Salvar registros</button>
+                <button class="btn btn-success btn-full-wide" id="btn-save" onclick="hdlSave()">Salvar registros</button>
               </div>
             </div>
           </div>
         </div>
         <div id="step-success" class="card hidden">
           <div class="success-panel">
-            <div class="success-icon">??</div>
+            <div class="success-icon">OK</div>
             <div class="success-title">Registros salvos!</div>
             <div class="success-message" id="succ-msg"></div>
             <div class="flex success-actions">
-              <button class="btn btn-primary" onclick="resetImport()">?? Importar Outro Dia</button>
-              <button class="btn btn-gold" onclick="hdlExcel()">?? Excel</button>
-              <button class="btn btn-ghost" onclick="switchTab('charts',null)">?? Gráficos</button>
+              <button class="btn btn-primary" onclick="resetImport()">Importar outro dia</button>
+              <button class="btn btn-gold" onclick="hdlExcel()">Exportar Excel</button>
+              <button class="btn btn-ghost" onclick="switchTab('charts',null)">Ver gráficos</button>
             </div>
           </div>
         </div>
       </div>
 
       <!-- HISTÓRICO -->
-      <div id="tab-history" class="hidden">
+      <div id="tab-history" class="app-page page-history hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">?? Histórico</div><div class="sec-sub" id="hist-subtitle">—</div></div>
+          <div><div class="sec-title">Histórico</div><div class="sec-sub" id="hist-subtitle">—</div></div>
           <div class="flex">
-            <button class="btn btn-gold btn-sm" onclick="hdlExcel()">? Excel</button>
-            <button class="btn btn-ghost btn-sm" onclick="hdlPDF()">?? PDF</button>
-            <button class="btn btn-purple btn-sm" onclick="hdlExportBackup()">?? Backup</button>
+            <button class="btn btn-gold btn-sm" onclick="hdlExcel()">Exportar Excel</button>
+            <button class="btn btn-ghost btn-sm" onclick="hdlPDF()">Gerar PDF</button>
+            <button class="btn btn-purple btn-sm" onclick="hdlExportBackup()">Backup</button>
           </div>
         </div>
         <div class="filter-bar">
-          <span class="filter-icon">??</span>
+          <span class="filter-icon">FL</span>
           <input type="text" class="search-input" id="f-search" placeholder="Buscar consultor, motivo, plano..." oninput="debouncedHistory()" autocomplete="off"/>
           <select id="f-consultor" onchange="renderHistory()"><option value="">Todos os consultores</option></select>
           <select id="f-status-h" onchange="renderHistory()">
             <option value="">Todos os status</option>
-            <option value="Revertido">? Revertido</option>
-            <option value="Em Tratativa">? Em Tratativa</option>
-            <option value="Cancelado">? Cancelado</option>
+            <option value="Revertido">Revertido</option>
+            <option value="Em Tratativa">Em tratativa</option>
+            <option value="Cancelado">Cancelado</option>
           </select>
           <select id="f-data" onchange="renderHistory()"><option value="">Todas as datas</option></select>
-          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">? Limpar</button>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">Limpar</button>
           <span class="filter-count" id="filter-count"></span>
         </div>
-        <div id="hist-empty" class="card hidden"><div class="empty-state"><div class="ico">??</div><p>Nenhum dado importado ainda.</p></div></div>
+        <div id="hist-empty" class="card hidden"><div class="empty-state"><div class="ico">VA</div><p>Nenhum dado importado ainda.</p></div></div>
         <div id="hist-list"></div>
       </div>
 
       <!-- ESTATÍSTICAS -->
-      <div id="tab-stats" class="hidden">
+      <div id="tab-stats" class="app-page page-stats hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">?? Estatísticas</div><div class="sec-sub">Análise de performance por consultor</div></div>
+          <div><div class="sec-title">Estatísticas</div><div class="sec-sub">Análise de performance por consultor</div></div>
           <select id="f-mes" onchange="renderStats()"><option value="">Todo o período</option></select>
         </div>
         <div id="perf-alerts-stats"></div>
@@ -269,7 +269,7 @@
           <div class="prog-bar"><div class="prog-fill u-w-0" id="prog-fill"></div></div>
         </div>
         <div class="table-wrap">
-          <div class="table-hdr"><span>?? Ranking por Consultor</span><button class="btn btn-ghost btn-sm" onclick="hdlPDF()">?? PDF</button></div>
+          <div class="table-hdr"><span>Ranking por consultor</span><button class="btn btn-ghost btn-sm" onclick="hdlPDF()">Gerar PDF</button></div>
           <div class="table-scroll"><table><thead><tr>
             <th>#</th><th>Consultor</th><th class="u-text-center">Total</th>
             <th class="u-text-center">Revertidos</th><th class="u-text-center">Em Tratativa</th>
@@ -279,9 +279,9 @@
       </div>
 
       <!-- GRÁFICOS -->
-      <div id="tab-charts" class="hidden">
+      <div id="tab-charts" class="app-page page-charts hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">?? Gráficos</div><div class="sec-sub">Visualizações de performance</div></div>
+          <div><div class="sec-title">Ver gráficos</div><div class="sec-sub">Visualizações de performance</div></div>
           <select id="f-mes-chart" onchange="renderCharts()"><option value="">Todo o período</option></select>
         </div>
         <div class="g2 u-mb-14">
@@ -293,15 +293,15 @@
           <div class="chart-frame-md"><canvas id="chart-bar"></canvas></div>
         </div>
         <div class="chart-wrap">
-          <div class="chart-title">?? Comparativo Mês a Mês</div>
+          <div class="chart-title">Comparativo mês a mês</div>
           <div class="chart-frame-sm"><canvas id="chart-comp"></canvas></div>
         </div>
       </div>
 
       <!-- HEATMAP -->
-      <div id="tab-heatmap" class="hidden">
+      <div id="tab-heatmap" class="app-page page-heatmap hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">?? Heatmap de Horários</div><div class="sec-sub">Quais horas do dia têm mais reversões</div></div>
+          <div><div class="sec-title">Heatmap de horários</div><div class="sec-sub">Quais horas do dia têm mais reversões</div></div>
           <select id="f-mes-heat" onchange="renderHeatmap()"><option value="">Todo o período</option></select>
         </div>
         <div class="card u-mb-14">
@@ -309,53 +309,53 @@
           <div id="heatmap-wrap" class="heatmap-scroll"></div>
         </div>
         <div class="g2">
-          <div class="card"><div class="card-title">? Melhores Horários</div><div id="best-hours"></div></div>
-          <div class="card"><div class="card-title">?? Performance por Turno</div><div id="shift-stats"></div></div>
+          <div class="card"><div class="card-title">Melhores horários</div><div id="best-hours"></div></div>
+          <div class="card"><div class="card-title">Performance por turno</div><div id="shift-stats"></div></div>
         </div>
       </div>
 
       <!-- SATISFAÇÃO -->
-      <div id="tab-sat" class="hidden">
+      <div id="tab-sat" class="app-page page-sat hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">? Controle de Satisfação</div><div class="sec-sub">BOM (4-5) · ATENÇÃO (2-3) · RUIM (0-1)</div></div>
+          <div><div class="sec-title">Controle de satisfação</div><div class="sec-sub">BOM (4-5) · ATENÇÃO (2-3) · RUIM (0-1)</div></div>
           <div class="flex">
-            <button class="btn btn-gold btn-sm" onclick="hdlExcelSat()">? Excel Mensal</button>
+            <button class="btn btn-gold btn-sm" onclick="hdlExcelSat()">Exportar Excel Mensal</button>
             <select id="sat-mes-sel" class="select-compact-md" onchange="renderSat()"><option value="">Todos os períodos</option></select>
           </div>
         </div>
         <div class="sat-tabs">
-          <button class="btn btn-primary btn-sm" id="sat-tab-import" onclick="switchSatTab('import')">?? Importar</button>
-          <button class="btn btn-ghost btn-sm" id="sat-tab-mensal" onclick="switchSatTab('mensal')">?? Mensal</button>
-          <button class="btn btn-ghost btn-sm" id="sat-tab-consultores" onclick="switchSatTab('consultores')">?? Consultores</button>
-          <button class="btn btn-ghost btn-sm" id="sat-tab-charts" onclick="switchSatTab('charts')">?? Gráficos</button>
+          <button class="btn btn-primary btn-sm" id="sat-tab-import" onclick="switchSatTab('import')">Importar</button>
+          <button class="btn btn-ghost btn-sm" id="sat-tab-mensal" onclick="switchSatTab('mensal')">Mensal</button>
+          <button class="btn btn-ghost btn-sm" id="sat-tab-consultores" onclick="switchSatTab('consultores')">Consultores</button>
+          <button class="btn btn-ghost btn-sm" id="sat-tab-charts" onclick="switchSatTab('charts')">Ver gráficos</button>
         </div>
         <div id="sat-panel-import">
           <div class="g2">
             <div class="stack-col-14">
               <div class="card">
-                <div class="card-title">?? Colar Dados de Pesquisa</div>
+                <div class="card-title">Colar dados da pesquisa</div>
                 <p class="sat-note">Cole os dados exportados do sistema (formato TSV).</p>
                 <textarea id="sat-raw" class="textarea-sat" placeholder="Cole os dados da pesquisa de satisfação aqui (TSV)..."></textarea>
                 <div class="flex u-mt-10">
-                  <button class="btn btn-primary u-flex-1-center" onclick="parseSatData()">?? Processar Dados</button>
-                  <button class="btn btn-ghost" onclick="document.getElementById('sat-raw').value=''">???</button>
+                  <button class="btn btn-primary u-flex-1-center" onclick="parseSatData()">Processar dados</button>
+                  <button class="btn btn-ghost" onclick="document.getElementById('sat-raw').value=''">Limpar</button>
                 </div>
               </div>
               <div class="card">
-                <div class="card-title">?? Consultores Monitorados</div>
+                <div class="card-title">Consultores monitorados</div>
                 <div id="sat-cons-list" class="sat-cons-list"></div>
               </div>
             </div>
             <div class="card">
-              <div class="card-title" id="sat-prev-title">?? Preview</div>
+              <div class="card-title" id="sat-prev-title">Preview</div>
               <div id="sat-prev-empty" class="sat-preview-empty">
-                <div class="empty-icon-lg">??</div>
+                <div class="empty-icon-lg">REAT</div>
                 <div class="helper-copy">Cole os dados e clique em<br/><strong>"Processar Dados"</strong></div>
               </div>
               <div id="sat-prev-content" class="hidden">
                 <div class="g3 u-mb-14" id="sat-prev-kpis"></div>
                 <div id="sat-prev-list" class="sat-preview-list"></div>
-                <button class="btn btn-success btn-full-wide" onclick="saveSatData()">?? Salvar Avaliações</button>
+                <button class="btn btn-success btn-full-wide" onclick="saveSatData()">Salvar avaliações</button>
               </div>
             </div>
           </div>
@@ -372,9 +372,9 @@
       </div>
 
       <!-- RANKING -->
-      <div id="tab-ranking" class="hidden">
+      <div id="tab-ranking" class="app-page page-ranking hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">?? Ranking Geral</div><div class="sec-sub">Performance completa da equipe</div></div>
+          <div><div class="sec-title">Ranking geral</div><div class="sec-sub">Performance completa da equipe</div></div>
           <select id="f-mes-rank" onchange="renderRanking()"><option value="">Todo o período</option></select>
         </div>
         <div id="ranking-podium" class="ranking-podium"></div>
@@ -382,19 +382,19 @@
           <div class="table-hdr">Ranking Detalhado</div>
           <div class="table-scroll"><table><thead><tr>
             <th>#</th><th>Consultor</th><th class="u-text-center">Total</th>
-            <th class="u-text-center">? Revertidos</th><th class="u-text-center">? Tratativa</th>
-            <th class="u-text-center">? Cancelados</th><th class="u-text-center">Taxa</th>
+            <th class="u-text-center">Revertidos</th><th class="u-text-center">Em tratativa</th>
+            <th class="u-text-center">Cancelados</th><th class="u-text-center">Taxa</th>
           </tr></thead><tbody id="ranking-tbody"></tbody></table></div>
         </div>
       </div>
 
       <!-- USUÁRIOS -->
-      <div id="tab-users" class="hidden">
+      <div id="tab-users" class="app-page page-users hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">?? Usuários</div><div class="sec-sub">Gerenciar acessos ao sistema</div></div>
+          <div><div class="sec-title">Usuários</div><div class="sec-sub">Gerenciar acessos ao sistema</div></div>
           <div class="flex">
             <button class="btn btn-primary u-display-none" id="btn-add-user" onclick="openAddUser()">+ Novo Usuário</button>
-            <label class="btn btn-purple clickable-label">?? Importar Backup<input type="file" accept=".json" class="u-display-none" onchange="hdlImportBackup(this)"/></label>
+            <label class="btn btn-purple clickable-label" id="btn-import-backup">Importar backup<input type="file" accept=".json" class="u-display-none" onchange="hdlImportBackup(this)"/></label>
           </div>
         </div>
         <div class="table-wrap">
@@ -402,31 +402,31 @@
           <table><thead><tr><th>Login</th><th>Nome</th><th class="u-text-center">Perfil</th><th class="u-text-center">Ações</th></tr></thead><tbody id="users-tbody"></tbody></table>
         </div>
         <div class="card sync-card">
-          <p class="sync-text">?? <strong>Dados sincronizados</strong> via banco de dados D1. Acessível de qualquer dispositivo.</p>
+          <p class="sync-text"><strong>Dados sincronizados</strong> via banco D1 e disponíveis em qualquer dispositivo.</p>
         </div>
       </div>
     </div>
   </div>
 
   <div class="bottom-nav">
-    <button class="bn-item active" id="bn-dashboard" onclick="switchTab('dashboard',null);setBottomNav('dashboard')"><span class="bn-icon">??</span><span class="bn-label">Home</span></button>
-    <button class="bn-item" id="bn-import" onclick="switchTab('import',null);setBottomNav('import')"><span class="bn-icon">??</span><span class="bn-label">Importar</span></button>
-    <button class="bn-item" id="bn-history" onclick="switchTab('history',null);setBottomNav('history')"><span class="bn-icon">??</span><span class="bn-label">Histórico</span></button>
-    <button class="bn-item" id="bn-stats" onclick="switchTab('stats',null);setBottomNav('stats')"><span class="bn-icon">??</span><span class="bn-label">Stats</span></button>
-    <button class="bn-item" id="bn-sat" onclick="switchTab('sat',null);setBottomNav('sat')"><span class="bn-icon">?</span><span class="bn-label">Satisfação</span></button>
+    <button class="bn-item active" id="bn-dashboard" onclick="switchTab('dashboard',null);setBottomNav('dashboard')"><span class="bn-icon">DB</span><span class="bn-label">Home</span></button>
+    <button class="bn-item" id="bn-import" onclick="switchTab('import',null);setBottomNav('import')"><span class="bn-icon">IM</span><span class="bn-label">Importar</span></button>
+    <button class="bn-item" id="bn-history" onclick="switchTab('history',null);setBottomNav('history')"><span class="bn-icon">HI</span><span class="bn-label">Histórico</span></button>
+    <button class="bn-item" id="bn-stats" onclick="switchTab('stats',null);setBottomNav('stats')"><span class="bn-icon">ES</span><span class="bn-label">Indic.</span></button>
+    <button class="bn-item" id="bn-sat" onclick="switchTab('sat',null);setBottomNav('sat')"><span class="bn-icon">ST</span><span class="bn-label">Satisfação</span></button>
   </div>
 </div>
 
 <!-- MODALS -->
 <div class="modal-bg" id="edit-modal">
   <div class="modal">
-    <h3>?? Editar Registro</h3>
+    <h3>Editar registro</h3>
     <div id="edit-info" class="edit-info-box"></div>
     <div class="mf"><label>Status</label>
       <select id="edit-status" class="u-w-full">
-        <option value="Revertido">? Revertido</option>
-        <option value="Em Tratativa">? Em Tratativa</option>
-        <option value="Cancelado">? Cancelado</option>
+        <option value="Revertido">Revertido</option>
+        <option value="Em Tratativa">Em tratativa</option>
+        <option value="Cancelado">Cancelado</option>
       </select>
     </div>
     <div class="mf"><label>Análise / Observação</label><textarea id="edit-analise" class="edit-analise"></textarea></div>
@@ -435,13 +435,14 @@
 </div>
 <div class="modal-bg" id="acc-modal">
   <div class="modal">
-    <h3>?? Minha Conta</h3>
+    <h3>Minha conta</h3>
     <div class="account-summary">
       <div class="account-summary-label">Logado como</div>
       <div class="account-summary-name" id="acc-name"></div>
       <div class="text-muted-sm" id="acc-login-lbl"></div>
     </div>
-    <div class="mf"><label>Nova senha (em branco = manter)</label><input type="password" id="acc-pass" placeholder="Nova senha" autocomplete="new-password"/></div>
+    <div class="mf"><label>Senha atual</label><input type="password" id="acc-current-pass" placeholder="Digite sua senha atual" autocomplete="current-password"/></div>
+    <div class="mf"><label>Nova senha</label><input type="password" id="acc-pass" placeholder="mínimo 8 caracteres com letras e números" autocomplete="new-password"/></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
       <button class="btn btn-primary" onclick="changeMyPass()">Atualizar</button>
@@ -451,10 +452,10 @@
 </div>
 <div class="modal-bg" id="user-modal">
   <div class="modal">
-    <h3>? Novo Usuário</h3>
+    <h3>Novo usuário</h3>
     <div class="mf"><label>Login</label><input type="text" id="m-login" placeholder="ex: joao.silva" autocomplete="off" autocapitalize="none"/></div>
     <div class="mf"><label>Nome completo</label><input type="text" id="m-name" placeholder="ex: João Silva" autocomplete="off"/></div>
-    <div class="mf"><label>Senha</label><input type="password" id="m-pass" placeholder="mínimo 4 caracteres" autocomplete="new-password"/></div>
+    <div class="mf"><label>Senha</label><input type="password" id="m-pass" placeholder="mínimo 8 caracteres com letras e números" autocomplete="new-password"/></div>
     <div class="mf"><label>Perfil</label><select id="m-role" class="u-w-full"><option value="user">Usuário</option><option value="admin">Admin</option></select></div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveUser()">Criar</button></div>
   </div>
@@ -463,8 +464,5 @@
 <script type="module" src="/assets/js/main.js"></script>
 </body>
 </html>
-
-
-
 
 

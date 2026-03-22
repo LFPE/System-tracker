@@ -1,9 +1,11 @@
-﻿export type SatRecordInput = {
+export type SatCategory = 'BOM' | 'ATENÇÃO' | 'RUIM'
+
+export type SatRecordInput = {
   ramal: number
   name: string
   date: string
   day: number
   phone?: string
   score: number
-  cat: string
+  cat: SatCategory | string
 }

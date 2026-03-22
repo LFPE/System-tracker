@@ -1,4 +1,4 @@
-﻿import { TRACKED_CONSULTANTS, normalizeConsultantName } from '../../assets/js/shared/consultants.js';
+import { TRACKED_CONSULTANTS, normalizeConsultantName } from '../../assets/js/shared/consultants.js';
 import { getPerformanceTone, renderEmptyState } from '../../assets/js/shared/templates.js';
 
 export function createSatModule({
@@ -106,15 +106,26 @@ export function createSatModule({
   }
 
   async function saveSatData() {
+    if (S.user?.role !== 'admin') {
+      showToast('Apenas administradores podem salvar satisfação.', 'warn');
+      return;
+    }
     if (!S.parsedSat?.records?.length) return;
     showLoading();
     try {
-      await api.post('/sat', { records: S.parsedSat.records });
-      const d = await api.get('/sat');
-      S.satRecords = d.records || [];
+      const selectedMonth = S.parsedSat.mes;
+      await api.post('/sat', { mes: selectedMonth, records: S.parsedSat.records });
+      const [satData, satMonthsData] = await Promise.all([
+        api.get('/sat'),
+        api.get('/sat/months'),
+      ]);
+      S.satRecords = satData.records || [];
+      S.satMonths = satMonthsData.months || [];
       populateAllFilters();
+      const satMonthSel = document.getElementById('sat-mes-sel');
+      if (satMonthSel) satMonthSel.value = selectedMonth;
       updateTopbarKpis();
-      showToast(`${S.parsedSat.records.length} avaliações salvas!`);
+      showToast(`${S.parsedSat.records.length} avaliações salvas para ${selectedMonth}!`);
       S.parsedSat = null;
       hideElement('sat-prev-content');
       showElement('sat-prev-empty');

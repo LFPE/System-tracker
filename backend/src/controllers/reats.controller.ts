@@ -1,7 +1,8 @@
-﻿import {
+import {
   deleteReatsByDate,
+  exportSystemBackup,
   getReatsStats,
-  importReatsBackup,
+  importSystemBackup,
   listReatConsultores,
   listReatDates,
   listReats,
@@ -27,6 +28,15 @@ export async function getReatsController(c: AppContext) {
   }
 }
 
+export async function exportBackupController(c: AppContext) {
+  try {
+    const backup = await exportSystemBackup(c.env.DB)
+    return jsonOk(c, backup)
+  } catch (error) {
+    return jsonError(c, 500, error, 'Erro ao exportar backup')
+  }
+}
+
 export async function getReatDatesController(c: AppContext) {
   const dates = await listReatDates(c.env.DB)
   return jsonOk(c, { dates })
@@ -48,10 +58,14 @@ export async function createReatsController(c: AppContext) {
 }
 
 export async function updateReatController(c: AppContext) {
-  const id = c.req.param('id')
-  const { status, analise } = validateReatUpdatePayload(await c.req.json())
-  await updateReat(c.env.DB, id, status, analise)
-  return jsonOk(c)
+  try {
+    const id = c.req.param('id')
+    const { status, analise } = validateReatUpdatePayload(await c.req.json())
+    await updateReat(c.env.DB, id, status, analise)
+    return jsonOk(c)
+  } catch (error) {
+    return jsonError(c, 400, error, 'Dados invalidos')
+  }
 }
 
 export async function deleteReatsByDateController(c: AppContext) {
@@ -72,9 +86,9 @@ export async function getReatsStatsController(c: AppContext) {
 
 export async function importBackupController(c: AppContext) {
   try {
-    const { records } = validateBackupPayload(await c.req.json())
-    const count = await importReatsBackup(c.env.DB, records)
-    return jsonOk(c, { count })
+    const { backup } = validateBackupPayload(await c.req.json())
+    const summary = await importSystemBackup(c.env.DB, backup)
+    return jsonOk(c, summary)
   } catch (error) {
     return jsonError(c, 400, error, 'Formato invalido')
   }

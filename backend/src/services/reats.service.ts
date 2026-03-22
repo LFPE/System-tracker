@@ -1,5 +1,7 @@
-﻿import type { D1Database } from '@cloudflare/workers-types'
-import type { ReatBackupPayload, ReatRecordInput } from '../models/reats.model'
+import type { D1Database } from '@cloudflare/workers-types'
+import type { BackupUserInput, ReatRecordInput, SystemBackupPayload } from '../models/reats.model'
+import type { SatRecordInput } from '../models/sat.model'
+import { normalizeLogin, trimString } from '../utils/input'
 
 export async function listReats(db: D1Database, filters: {
   consultor: string
@@ -84,7 +86,10 @@ export async function replaceReatsForDate(db: D1Database, data_ref: string, reco
     )
   )
 
-  await db.batch(batch)
+  if (batch.length) {
+    await db.batch(batch)
+  }
+
   return records.length
 }
 
@@ -140,13 +145,103 @@ export async function getReatsStats(db: D1Database, month: string) {
   }
 }
 
-export async function importReatsBackup(db: D1Database, backup: ReatBackupPayload) {
-  let count = 0
+async function replaceSatForMonth(db: D1Database, month: string, records: SatRecordInput[]) {
+  await db.prepare('DELETE FROM satisfacao WHERE date LIKE ?').bind(`${month}%`).run()
 
-  for (const [dataRef, rows] of Object.entries(backup)) {
-    if (!Array.isArray(rows)) continue
-    count += await replaceReatsForDate(db, dataRef, rows)
+  const statement = db.prepare(`
+    INSERT INTO satisfacao (ramal, name, date, day, phone, score, cat)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `)
+
+  const batch = records.map((record) =>
+    statement.bind(
+      record.ramal,
+      record.name,
+      record.date,
+      record.day,
+      record.phone || '',
+      record.score,
+      record.cat
+    )
+  )
+
+  if (batch.length) {
+    await db.batch(batch)
   }
 
-  return count
+  return records.length
+}
+
+async function upsertBackupUsers(db: D1Database, users: BackupUserInput[]) {
+  const validUsers = users.filter((user) => normalizeLogin(user?.login) && trimString(user?.name) && trimString(user?.pass_hash))
+  if (!validUsers.length) return 0
+
+  const statement = db.prepare(`
+    INSERT INTO users (login, name, pass_hash, role)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(login) DO UPDATE SET
+      name = excluded.name,
+      pass_hash = excluded.pass_hash,
+      role = excluded.role
+  `)
+
+  const batch = validUsers.map((user) =>
+    statement.bind(
+      normalizeLogin(user.login),
+      trimString(user.name),
+      trimString(user.pass_hash),
+      trimString(user.role) || 'user'
+    )
+  )
+
+  await db.batch(batch)
+  return validUsers.length
+}
+
+export async function exportSystemBackup(db: D1Database) {
+  const [reatsResult, satResult, usersResult] = await Promise.all([
+    db.prepare('SELECT * FROM reats ORDER BY data_ref DESC, hora ASC').all<any>(),
+    db.prepare('SELECT * FROM satisfacao ORDER BY date ASC, name ASC').all<any>(),
+    db.prepare('SELECT login, name, role, pass_hash, created_at FROM users ORDER BY created_at ASC').all<any>(),
+  ])
+
+  const records: Record<string, ReatRecordInput[]> = {}
+  for (const row of reatsResult.results) {
+    if (!records[row.data_ref]) records[row.data_ref] = []
+    records[row.data_ref].push(row)
+  }
+
+  return {
+    version: 3,
+    exported: new Date().toISOString(),
+    records,
+    sat: satResult.results,
+    users: usersResult.results,
+  }
+}
+
+export async function importSystemBackup(db: D1Database, backup: SystemBackupPayload) {
+  let reats = 0
+  let sat = 0
+
+  for (const [dataRef, rows] of Object.entries(backup.records || {})) {
+    if (!Array.isArray(rows)) continue
+    reats += await replaceReatsForDate(db, dataRef, rows)
+  }
+
+  const satByMonth: Record<string, SatRecordInput[]> = {}
+  for (const row of backup.sat || []) {
+    const month = trimString(row?.date).slice(0, 7)
+    if (!month) continue
+    if (!satByMonth[month]) satByMonth[month] = []
+    satByMonth[month].push(row)
+  }
+
+  for (const [month, rows] of Object.entries(satByMonth)) {
+    sat += await replaceSatForMonth(db, month, rows)
+  }
+
+  const users = await upsertBackupUsers(db, backup.users || [])
+
+  return { reats, sat, users }
 }

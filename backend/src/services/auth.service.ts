@@ -1,7 +1,7 @@
-﻿import type { D1Database } from '@cloudflare/workers-types'
+import type { D1Database } from '@cloudflare/workers-types'
 import { normalizeLogin } from '../utils/input'
 import { hashPass } from '../utils/hash'
-import { createSessionToken, decodeSessionLogin, toAuthUser } from '../utils/session'
+import { createSessionToken, readSessionPayload, toAuthUser } from '../utils/session'
 
 export async function findUserByLogin(db: D1Database, login: string) {
   return db.prepare('SELECT * FROM users WHERE login = ?').bind(normalizeLogin(login)).first<any>()
@@ -21,11 +21,15 @@ export async function loginUser(db: D1Database, login: string, pass: string) {
 }
 
 export async function getSessionUser(db: D1Database, token: string) {
-  const login = decodeSessionLogin(token)
+  const session = readSessionPayload(token)
+  if (!session) return null
+
   const user = await db.prepare(
-    'SELECT id, login, name, role FROM users WHERE login = ?'
-  ).bind(login).first<any>()
+    'SELECT id, login, name, role, pass_hash FROM users WHERE login = ?'
+  ).bind(session.login).first<any>()
 
-  return user ? toAuthUser(user) : null
+  if (!user) return null
+  if (user.pass_hash?.slice(-12) !== session.marker) return null
+
+  return toAuthUser(user)
 }
-

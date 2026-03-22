@@ -1,4 +1,4 @@
-﻿import type { D1Database } from '@cloudflare/workers-types'
+import type { D1Database } from '@cloudflare/workers-types'
 import type { UserCreateInput } from '../models/user.model'
 import { hashPass } from '../utils/hash'
 
@@ -30,6 +30,11 @@ export async function deleteUserById(db: D1Database, id: string) {
   await db.prepare('DELETE FROM users WHERE id = ?').bind(id).run()
 }
 
-export async function updateOwnPassword(db: D1Database, userId: number, pass: string) {
+export async function updateOwnPassword(db: D1Database, userId: number, currentPass: string, pass: string) {
+  const user = await db.prepare('SELECT pass_hash FROM users WHERE id = ?').bind(userId).first<any>()
+  if (!user || user.pass_hash !== hashPass(currentPass)) {
+    throw new Error('Senha atual incorreta')
+  }
+
   await db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?').bind(hashPass(pass), userId).run()
 }

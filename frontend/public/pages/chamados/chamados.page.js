@@ -1,4 +1,4 @@
-﻿import { getConsultantSearchTerms, normalizeConsultantName } from '../../assets/js/shared/consultants.js';
+import { getConsultantSearchTerms, normalizeConsultantName } from '../../assets/js/shared/consultants.js';
 import { renderEmptyState } from '../../assets/js/shared/templates.js';
 
 export function createReatsModule({
@@ -45,7 +45,7 @@ export function createReatsModule({
     setHTML('prev-list', '');
     showElement('prev-empty');
     hideElement('prev-content');
-    setText('prev-title', '👀 Preview dos registros');
+    setText('prev-title', 'Preview dos registros');
   }
 
   function resetImport() {
@@ -153,9 +153,9 @@ export function createReatsModule({
     const trat = records.filter(r => r.status === 'Em Tratativa').length;
     const taxa = records.length ? Math.round(rev / records.length * 100) : 0;
     setHTML('prev-stats', `
-      <div class="kpi-card kpi-gold" style="padding:14px"><div class="kpi-val gold" style="font-size:22px">${records.length}</div><div class="kpi-label">Total</div></div>
-      <div class="kpi-card kpi-green" style="padding:14px"><div class="kpi-val green" style="font-size:22px">${rev}</div><div class="kpi-label">Revertidos</div></div>
-      <div class="kpi-card kpi-blue" style="padding:14px"><div class="kpi-val blue" style="font-size:22px">${taxa}%</div><div class="kpi-label">Taxa</div></div>
+      <div class="kpi-card kpi-gold compact-kpi-card"><div class="kpi-val gold compact-kpi-value">${records.length}</div><div class="kpi-label">Total</div></div>
+      <div class="kpi-card kpi-green compact-kpi-card"><div class="kpi-val green compact-kpi-value">${rev}</div><div class="kpi-label">Revertidos</div></div>
+      <div class="kpi-card kpi-blue compact-kpi-card"><div class="kpi-val blue compact-kpi-value">${taxa}%</div><div class="kpi-label">Taxa</div></div>
     `);
     setHTML('prev-list', records.map(r => `
       <div class="prev-item">
@@ -163,13 +163,17 @@ export function createReatsModule({
         <strong>${r.hora}</strong> — ${r.consultor} | ${r.motivo} | ${r.plano}
       </div>`).join(''));
 
-    setText('prev-title', `👀 ${records.length} registros identificados`);
+    setText('prev-title', `${records.length} registros identificados`);
     hideElement('prev-empty');
     showElement('prev-content');
     _setImportStep(2);
   }
 
   async function hdlSave() {
+    if (S.user?.role !== 'admin') {
+      showToast('Apenas administradores podem importar REATs.', 'warn');
+      return;
+    }
     if (!S.parsedImport?.records?.length) return;
     showLoading();
     try {
@@ -247,16 +251,16 @@ export function createReatsModule({
     el.innerHTML = Object.entries(byDate).sort((a, b) => b[0].localeCompare(a[0])).map(([date, items]) => `
       <div class="hist-day">
         <div class="hist-day-hdr">
-          <div class="hist-day-label">📅 ${fmtDate(date)}</div>
-          <div style="display:flex;align-items:center;gap:8px">
+          <div class="hist-day-label">${fmtDate(date)}</div>
+          <div class="hist-day-actions">
             <div class="hist-day-count">${items.length} registros</div>
-            ${S.user?.role === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteDay('${date}')">🗑 Apagar dia</button>` : ''}
+            ${S.user?.role === 'admin' ? `<button class="btn btn-danger btn-sm" onclick="deleteDay('${date}')">Apagar dia</button>` : ''}
           </div>
         </div>
         ${items.map(r => `
-          <div class="hist-item ${r.status === 'Revertido' ? 'rev' : r.status === 'Cancelado' ? 'can' : 'trat'}" onclick="openEdit(${r.id})">
+          <div class="hist-item ${r.status === 'Revertido' ? 'rev' : r.status === 'Cancelado' ? 'can' : 'trat'}"${S.user?.role === 'admin' ? ` onclick="openEdit(${r.id})"` : ''}>
             <div>
-              <div class="hist-main">${r.hora} — <strong>${r.consultor}</strong></div>
+              <div class="hist-main">${r.hora} <span class="hist-separator">•</span> <strong>${r.consultor}</strong></div>
               <div class="hist-meta"><span>${r.tipo}</span><span>${r.motivo}</span><span>Plano: ${r.plano}</span></div>
               ${r.analise ? `<div class="hist-analise">${r.analise}</div>` : ''}
             </div>
@@ -266,10 +270,11 @@ export function createReatsModule({
   }
 
   function openEdit(id) {
+    if (S.user?.role !== 'admin') return;
     const r = S.records.find(x => x.id === id);
     if (!r) return;
     S.editingId = id;
-    setHTML('edit-info', `<strong>${r.hora}</strong> — ${r.consultor}<br>${r.tipo} | ${r.motivo} | Plano: ${r.plano}`);
+    setHTML('edit-info', `<strong>${r.hora}</strong> <span class="hist-separator">•</span> ${r.consultor}<br>${r.tipo} | ${r.motivo} | Plano: ${r.plano}`);
     document.getElementById('edit-status').value = r.status;
     document.getElementById('edit-analise').value = r.analise || '';
     document.getElementById('edit-modal').classList.add('open');

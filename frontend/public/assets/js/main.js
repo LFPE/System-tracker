@@ -1,4 +1,4 @@
-﻿import { createApiClient } from './core/api-client.js';
+import { createApiClient } from './core/api-client.js';
 import { hideElement, setHTML, setText, showElement } from './core/dom.js';
 import { hideLoading, showLoading, showToast } from './core/ui-feedback.js';
 import { createDashboardModule } from '../../pages/dashboard/dashboard.page.js';
@@ -13,6 +13,7 @@ const S = {
   user: null,
   records: [],
   satRecords: [],
+  satMonths: [],
   editingId: null,
   charts: {},
   theme: localStorage.getItem('theme') || 'light',
@@ -318,6 +319,12 @@ function onLoginSuccess() {
 
   const btnAddUser = document.getElementById('btn-add-user');
   if (btnAddUser) btnAddUser.style.display = S.user.role === 'admin' ? 'inline-flex' : 'none';
+  const btnBackupTop = document.getElementById('btn-backup-top');
+  if (btnBackupTop) btnBackupTop.style.display = S.user.role === 'admin' ? 'inline-flex' : 'none';
+  const btnBackupSide = document.getElementById('btn-backup-side');
+  if (btnBackupSide) btnBackupSide.style.display = S.user.role === 'admin' ? 'inline-flex' : 'none';
+  const btnImportBackup = document.getElementById('btn-import-backup');
+  if (btnImportBackup) btnImportBackup.style.display = S.user.role === 'admin' ? 'inline-flex' : 'none';
 
   loadAllData();
 }
@@ -332,6 +339,7 @@ async function doLogout() {
   S.user = null;
   S.records = [];
   S.satRecords = [];
+  S.satMonths = [];
   closeModal();
   showLoginScreen();
 }
@@ -339,18 +347,24 @@ async function doLogout() {
 function openAccModal() {
   document.getElementById('acc-name').textContent = S.user?.name || '—';
   document.getElementById('acc-login-lbl').textContent = `@${S.user?.login || ''}`;
+  document.getElementById('acc-current-pass').value = '';
   document.getElementById('acc-pass').value = '';
   document.getElementById('acc-modal').classList.add('open');
 }
 
 async function changeMyPass() {
+  const currentPass = document.getElementById('acc-current-pass').value;
   const p = document.getElementById('acc-pass').value;
   if (!p) {
     closeModal();
     return;
   }
+  if (!currentPass) {
+    showToast('Informe a senha atual.', 'warn');
+    return;
+  }
   try {
-    await api.put('/users/me/password', { pass: p });
+    await api.put('/users/me/password', { current_pass: currentPass, pass: p });
     showToast('Senha atualizada!');
     closeModal();
   } catch (e) {
@@ -361,12 +375,14 @@ async function changeMyPass() {
 async function loadAllData() {
   showLoading();
   try {
-    const [reatsData, satData] = await Promise.all([
+    const [reatsData, satData, satMonthsData] = await Promise.all([
       api.get('/reats'),
       api.get('/sat'),
+      api.get('/sat/months'),
     ]);
     S.records = reatsData.records || [];
     S.satRecords = satData.records || [];
+    S.satMonths = satMonthsData.months || [];
     populateAllFilters();
     renderDashboard();
     updateTopbarKpis();

@@ -1,4 +1,4 @@
-﻿import {
+import {
   createSatRecords,
   getSatAggregation,
   getSatTotals,
@@ -26,8 +26,8 @@ export async function getSatMonthsController(c: AppContext) {
 
 export async function createSatController(c: AppContext) {
   try {
-    const { records } = validateSatCreatePayload(await c.req.json())
-    const count = await createSatRecords(c.env.DB, records)
+    const { mes, records } = validateSatCreatePayload(await c.req.json())
+    const count = await createSatRecords(c.env.DB, mes, records)
     return jsonOk(c, { count })
   } catch (error) {
     return jsonError(c, 400, error, 'Dados invalidos')

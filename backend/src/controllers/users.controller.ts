@@ -1,5 +1,5 @@
-﻿import { createUser, deleteUserById, listUsers, updateOwnPassword } from '../services/users.service'
-import { validatePasswordPayload, validateUserCreatePayload } from '../validations/users.validation'
+import { createUser, deleteUserById, listUsers, updateOwnPassword } from '../services/users.service'
+import { validateOwnPasswordPayload, validateUserCreatePayload } from '../validations/users.validation'
 import type { AppContext } from '../models/app.model'
 import { getErrorMessage, jsonError, jsonOk } from '../utils/http'
 
@@ -34,11 +34,10 @@ export async function deleteUserController(c: AppContext) {
 export async function updateOwnPasswordController(c: AppContext) {
   try {
     const me = c.get('user')
-    const { pass } = validatePasswordPayload(await c.req.json())
-    await updateOwnPassword(c.env.DB, me.id, pass)
+    const { current_pass, pass } = validateOwnPasswordPayload(await c.req.json())
+    await updateOwnPassword(c.env.DB, me.id, current_pass, pass)
     return jsonOk(c)
   } catch (error) {
     return jsonError(c, 400, error, 'Erro ao atualizar senha')
   }
 }
-

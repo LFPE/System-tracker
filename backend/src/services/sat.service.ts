@@ -1,4 +1,4 @@
-﻿import type { D1Database } from '@cloudflare/workers-types'
+import type { D1Database } from '@cloudflare/workers-types'
 import type { SatRecordInput } from '../models/sat.model'
 
 export async function listSatRecords(db: D1Database, filters: { mes: string; name: string }) {
@@ -29,7 +29,9 @@ export async function listSatMonths(db: D1Database) {
   return result.results.map((row: any) => row.month)
 }
 
-export async function createSatRecords(db: D1Database, records: SatRecordInput[]) {
+export async function createSatRecords(db: D1Database, month: string, records: SatRecordInput[]) {
+  await db.prepare('DELETE FROM satisfacao WHERE date LIKE ?').bind(`${month}%`).run()
+
   const statement = db.prepare(`
     INSERT INTO satisfacao (ramal, name, date, day, phone, score, cat)
     VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -47,7 +49,10 @@ export async function createSatRecords(db: D1Database, records: SatRecordInput[]
     )
   )
 
-  await db.batch(batch)
+  if (batch.length) {
+    await db.batch(batch)
+  }
+
   return records.length
 }
 
