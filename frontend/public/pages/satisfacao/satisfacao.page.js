@@ -1,5 +1,5 @@
-import { TRACKED_CONSULTANTS, normalizeConsultantName } from '../../assets/js/shared/consultants.js';
-import { getPerformanceTone, renderEmptyState } from '../../assets/js/shared/templates.js';
+import { TRACKED_CONSULTANTS, normalizeConsultantName } from '../../assets/js/core/consultants.js';
+import { getPerformanceTone, renderEmptyState } from '../../assets/js/core/templates.js';
 
 export function createSatModule({
   S,
@@ -15,7 +15,118 @@ export function createSatModule({
   hideElement,
   mkChart,
 }) {
+  function fmtMonth(ym) {
+    if (!ym) return '';
+    const [y, m] = ym.split('-').map(Number);
+    if (!y || !m) return '';
+    return new Date(y, m - 1, 1).toLocaleDateString('pt-BR', {
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  function getSatSnapshot() {
+    const mes = document.getElementById('sat-mes-sel')?.value || '';
+    const recs = mes ? S.satRecords.filter(r => r.date?.startsWith(mes)) : S.satRecords;
+    const total = recs.length;
+    const bom = recs.filter(r => r.cat === 'BOM').length;
+    const aten = recs.filter(r => r.cat === 'ATEN\u00C7\u00C3O').length;
+    const ruim = recs.filter(r => r.cat === 'RUIM').length;
+    const pct = total ? Math.round(bom / total * 100) : 0;
+    const consultores = new Set(recs.map(r => r.name).filter(Boolean)).size;
+
+    return {
+      mes,
+      recs,
+      total,
+      bom,
+      aten,
+      ruim,
+      pct,
+      consultores,
+    };
+  }
+
+  function ensureSatOverviewShell() {
+    const grid = document.getElementById('sat-overview');
+    if (grid) return grid;
+
+    const page = document.getElementById('tab-sat');
+    if (!page) return null;
+
+    const created = document.createElement('div');
+    created.id = 'sat-overview';
+    created.style.display = 'grid';
+    created.style.gridTemplateColumns = 'repeat(auto-fit, minmax(180px, 1fr))';
+    created.style.gap = '12px';
+
+    const tabs = document.querySelector('#tab-sat .sat-tabs');
+    if (tabs) page.insertBefore(created, tabs);
+    else page.appendChild(created);
+
+    return created;
+  }
+
+  function renderSatOverview() {
+    const grid = ensureSatOverviewShell();
+    if (!grid) return;
+
+    const snap = getSatSnapshot();
+    const tone = getPerformanceTone(snap.pct);
+    const toneColor = tone === 'good' ? '#10b981' : tone === 'warn' ? '#f59e0b' : '#ef4444';
+    const toneLabel = tone === 'good' ? 'Forte' : tone === 'warn' ? 'Est\u00E1vel' : 'Baixa';
+    const scopeLabel = snap.mes ? fmtMonth(snap.mes) : 'Todo o per\u00EDodo';
+    const badTotal = snap.aten + snap.ruim;
+
+    const cards = [
+      {
+        label: 'Avalia\u00E7\u00F5es',
+        value: String(snap.total),
+        sub: scopeLabel,
+        accent: '#3b82f6',
+        hint: `${snap.consultores} consultor${snap.consultores === 1 ? '' : 'es'} ativos`,
+      },
+      {
+        label: 'Satisfa\u00E7\u00E3o',
+        value: `${snap.pct}%`,
+        sub: `${snap.bom} classificadas como BOM`,
+        accent: toneColor,
+        hint: toneLabel,
+      },
+      {
+        label: 'BOM',
+        value: String(snap.bom),
+        sub: `${snap.aten} aten\u00E7\u00E3o`,
+        accent: '#10b981',
+        hint: 'Leituras positivas',
+      },
+      {
+        label: 'Problemas',
+        value: String(badTotal),
+        sub: `${snap.ruim} ruins`,
+        accent: '#f59e0b',
+        hint: `${badTotal} itens para revisar`,
+      },
+    ];
+
+    grid.innerHTML = cards.map(card => `
+      <div class="kpi-card" style="
+        margin:0;
+        border-top:3px solid ${card.accent};
+        background:linear-gradient(180deg, rgba(15,23,42,.94), rgba(16,24,40,.88));
+        box-shadow:0 14px 32px rgba(2,6,23,.24);
+      ">
+        <div class="kpi-icon-badge" style="background:rgba(255,255,255,.08);color:${card.accent};margin-bottom:12px">${card.label.slice(0, 2).toUpperCase()}</div>
+        <div class="kpi-val" style="color:#fff">${card.value}</div>
+        <div class="kpi-label" style="color:rgba(226,232,240,.62)">${card.label}</div>
+        <div style="margin-top:10px;font-size:12px;color:rgba(241,245,249,.78);font-weight:600">${card.sub}</div>
+        <div style="margin-top:6px;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:${card.accent};font-weight:800">${card.hint}</div>
+      </div>
+    `).join('');
+  }
+
   function switchSatTab(tab) {
+    renderSatOverview();
     ['import', 'mensal', 'consultores', 'charts'].forEach(t => {
       const btn = document.getElementById(`sat-tab-${t}`);
       const pan = document.getElementById(`sat-panel-${t}`);
@@ -30,6 +141,7 @@ export function createSatModule({
   }
 
   function renderSat() {
+    renderSatOverview();
     const active = ['import', 'mensal', 'consultores', 'charts'].find(t => {
       const btn = document.getElementById(`sat-tab-${t}`);
       return btn && btn.classList.contains('btn-primary');
@@ -53,7 +165,7 @@ export function createSatModule({
       return;
     }
     if (!mes) {
-      showToast('Selecione o mês no filtro acima', 'warn');
+      showToast('Selecione o m\u00EAs no filtro acima', 'warn');
       return;
     }
 
@@ -72,42 +184,42 @@ export function createSatModule({
       const phone = cols[3] || '';
       const score = parseFloat(cols[4] || '0');
       if (Number.isNaN(ramal) || Number.isNaN(day) || Number.isNaN(score)) continue;
-      const cat = score >= 4 ? 'BOM' : score >= 2 ? 'ATENÇÃO' : 'RUIM';
+      const cat = score >= 4 ? 'BOM' : score >= 2 ? 'ATEN\u00C7\u00C3O' : 'RUIM';
       const dateStr = `${y}-${String(m).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
       records.push({ ramal, name, date: dateStr, day, phone, score, cat });
     }
 
     if (!records.length) {
-      showToast('Nenhum registro válido encontrado', 'warn');
+      showToast('Nenhum registro v\u00E1lido encontrado', 'warn');
       return;
     }
 
     S.parsedSat = { mes, records };
 
     const bom = records.filter(r => r.cat === 'BOM').length;
-    const aten = records.filter(r => r.cat === 'ATENÇÃO').length;
+    const aten = records.filter(r => r.cat === 'ATEN\u00C7\u00C3O').length;
     const ruim = records.filter(r => r.cat === 'RUIM').length;
     const pct = Math.round(bom / records.length * 100);
 
     setHTML('sat-prev-kpis', `
       <div class="kpi-card kpi-green" style="padding:14px"><div class="kpi-val green" style="font-size:22px">${bom}</div><div class="kpi-label">BOM</div></div>
-      <div class="kpi-card kpi-yellow" style="padding:14px"><div class="kpi-val yellow" style="font-size:22px">${aten}</div><div class="kpi-label">ATENÇÃO</div></div>
+      <div class="kpi-card kpi-yellow" style="padding:14px"><div class="kpi-val yellow" style="font-size:22px">${aten}</div><div class="kpi-label">ATEN\u00C7\u00C3O</div></div>
       <div class="kpi-card kpi-red" style="padding:14px"><div class="kpi-val red" style="font-size:22px">${ruim}</div><div class="kpi-label">RUIM</div></div>
     `);
     setHTML('sat-prev-list', records.slice(0, 30).map(r => `
-      <div class="prev-item" style="border-left-color:${r.cat === 'BOM' ? 'var(--green2)' : r.cat === 'ATENÇÃO' ? 'var(--yellow2)' : 'var(--red2)'}">
-        <strong>${r.name.split(' ')[0]}</strong> — Dia ${r.day} | Nota: ${r.score} |
-        <span style="font-weight:700;color:${r.cat === 'BOM' ? 'var(--green2)' : r.cat === 'ATENÇÃO' ? 'var(--yellow2)' : 'var(--red2)'}">${r.cat}</span>
+      <div class="prev-item" style="border-left-color:${r.cat === 'BOM' ? 'var(--green2)' : r.cat === 'ATEN\u00C7\u00C3O' ? 'var(--yellow2)' : 'var(--red2)'}">
+        <strong>${r.name.split(' ')[0]}</strong> \u2014 Dia ${r.day} | Nota: ${r.score} |
+        <span style="font-weight:700;color:${r.cat === 'BOM' ? 'var(--green2)' : r.cat === 'ATEN\u00C7\u00C3O' ? 'var(--yellow2)' : 'var(--red2)'}">${r.cat}</span>
       </div>`).join('') + (records.length > 30 ? `<div style="color:var(--text3);font-size:11px;padding:8px">...e mais ${records.length - 30} registros</div>` : ''));
 
-    setText('sat-prev-title', `📊 ${records.length} avaliações — ${pct}% satisfação`);
+    setText('sat-prev-title', `Painel: ${records.length} avalia\u00E7\u00F5es \u2014 ${pct}% satisfa\u00E7\u00E3o`);
     hideElement('sat-prev-empty');
     showElement('sat-prev-content');
   }
 
   async function saveSatData() {
     if (S.user?.role !== 'admin') {
-      showToast('Apenas administradores podem salvar satisfação.', 'warn');
+      showToast('Apenas administradores podem salvar satisfa\u00E7\u00E3o.', 'warn');
       return;
     }
     if (!S.parsedSat?.records?.length) return;
@@ -125,7 +237,8 @@ export function createSatModule({
       const satMonthSel = document.getElementById('sat-mes-sel');
       if (satMonthSel) satMonthSel.value = selectedMonth;
       updateTopbarKpis();
-      showToast(`${S.parsedSat.records.length} avaliações salvas para ${selectedMonth}!`);
+      renderSatOverview();
+      showToast(`${S.parsedSat.records.length} avalia\u00E7\u00F5es salvas para ${selectedMonth}!`);
       S.parsedSat = null;
       hideElement('sat-prev-content');
       showElement('sat-prev-empty');
@@ -157,7 +270,7 @@ export function createSatModule({
       const k = `${r.name}|${r.day}`;
       if (!grid[k]) grid[k] = { bom: 0, aten: 0, ruim: 0 };
       if (r.cat === 'BOM') grid[k].bom += 1;
-      else if (r.cat === 'ATENÇÃO') grid[k].aten += 1;
+      else if (r.cat === 'ATEN\u00C7\u00C3O') grid[k].aten += 1;
       else grid[k].ruim += 1;
     });
 
@@ -187,14 +300,14 @@ export function createSatModule({
           const wknd = dow === 0 || dow === 6;
           const k = `${cons}|${d}`;
           const v = grid[k];
-          if (wknd) return '<td class="sat-cell sc-weekend">—</td>';
-          if (!v) return '<td class="sat-cell sc-empty">·</td>';
+          if (wknd) return '<td class="sat-cell sc-weekend">\u2014</td>';
+          if (!v) return '<td class="sat-cell sc-empty">\u00B7</td>';
           totB += v.bom;
           totA += v.aten;
           totR += v.ruim;
           const cls = v.ruim > 0 ? 'sc-ruim' : v.aten > 0 ? 'sc-aten' : 'sc-bom';
           const tip = `B:${v.bom} A:${v.aten} R:${v.ruim}`;
-          return `<td class="sat-cell ${cls}" title="${tip}">${v.bom ? v.bom : ''}${v.aten ? '<br>⚠' : ''}${v.ruim ? '❌' : ''}</td>`;
+          return `<td class="sat-cell ${cls}" title="${tip}">${v.bom ? v.bom : ''}${v.aten ? '<br>\u26A0' : ''}${v.ruim ? '\u274C' : ''}</td>`;
         }).join('');
         const tot = totB + totA + totR;
         const pct = tot ? Math.round(totB / tot * 100) : 0;
@@ -219,7 +332,7 @@ export function createSatModule({
     recs.forEach(r => {
       if (!byC[r.name]) byC[r.name] = { bom: 0, aten: 0, ruim: 0 };
       if (r.cat === 'BOM') byC[r.name].bom += 1;
-      else if (r.cat === 'ATENÇÃO') byC[r.name].aten += 1;
+      else if (r.cat === 'ATEN\u00C7\u00C3O') byC[r.name].aten += 1;
       else byC[r.name].ruim += 1;
     });
 
@@ -235,7 +348,7 @@ export function createSatModule({
         <div class="sat-cons-name">${n}</div>
         <div class="sat-pct-badge" style="color:${pct >= 80 ? 'var(--green2)' : pct >= 60 ? 'var(--yellow2)' : 'var(--red2)'}">${pct}%</div>
         <div class="sat-bar-row"><span class="lbl" style="color:var(--green2)">BOM</span><div class="bar"><div class="bar-fill" style="width:${tot ? d.bom / tot * 100 : 0}%;background:var(--green2)"></div></div><span class="val" style="color:var(--green2)">${d.bom}</span></div>
-        <div class="sat-bar-row"><span class="lbl" style="color:var(--yellow2)">ATENÇÃO</span><div class="bar"><div class="bar-fill" style="width:${tot ? d.aten / tot * 100 : 0}%;background:var(--yellow2)"></div></div><span class="val" style="color:var(--yellow2)">${d.aten}</span></div>
+        <div class="sat-bar-row"><span class="lbl" style="color:var(--yellow2)">ATEN\u00C7\u00C3O</span><div class="bar"><div class="bar-fill" style="width:${tot ? d.aten / tot * 100 : 0}%;background:var(--yellow2)"></div></div><span class="val" style="color:var(--yellow2)">${d.aten}</span></div>
         <div class="sat-bar-row"><span class="lbl" style="color:var(--red2)">RUIM</span><div class="bar"><div class="bar-fill" style="width:${tot ? d.ruim / tot * 100 : 0}%;background:var(--red2)"></div></div><span class="val" style="color:var(--red2)">${d.ruim}</span></div>
       </div>`;
     }).join('');
@@ -250,7 +363,7 @@ export function createSatModule({
     recs.forEach(r => {
       if (!byC[r.name]) byC[r.name] = { bom: 0, aten: 0, ruim: 0 };
       if (r.cat === 'BOM') byC[r.name].bom += 1;
-      else if (r.cat === 'ATENÇÃO') byC[r.name].aten += 1;
+      else if (r.cat === 'ATEN\u00C7\u00C3O') byC[r.name].aten += 1;
       else byC[r.name].ruim += 1;
     });
 
@@ -262,23 +375,23 @@ export function createSatModule({
       labels: conss.map(c => c.split(' ')[0]),
       datasets: [
         { label: 'BOM', data: conss.map(c => byC[c].bom), backgroundColor: 'rgba(16,185,129,.7)' },
-        { label: 'ATENÇÃO', data: conss.map(c => byC[c].aten), backgroundColor: 'rgba(245,158,11,.7)' },
+        { label: 'ATEN\u00C7\u00C3O', data: conss.map(c => byC[c].aten), backgroundColor: 'rgba(245,158,11,.7)' },
         { label: 'RUIM', data: conss.map(c => byC[c].ruim), backgroundColor: 'rgba(239,68,68,.7)' },
       ],
     }, { stacked: true, tc, gc });
 
     const totB = recs.filter(r => r.cat === 'BOM').length;
-    const totA = recs.filter(r => r.cat === 'ATENÇÃO').length;
+    const totA = recs.filter(r => r.cat === 'ATEN\u00C7\u00C3O').length;
     const totR = recs.filter(r => r.cat === 'RUIM').length;
     mkChart('sat-chart-pie', 'doughnut', {
-      labels: ['BOM', 'ATENÇÃO', 'RUIM'],
+      labels: ['BOM', 'ATEN\u00C7\u00C3O', 'RUIM'],
       datasets: [{ data: [totB, totA, totR], backgroundColor: ['#10b981', '#f59e0b', '#ef4444'], borderWidth: 0 }],
     }, { tc });
 
     mkChart('sat-chart-pct', 'bar', {
       labels: conss.map(c => c.split(' ')[0]),
       datasets: [{
-        label: '% Satisfação',
+        label: '% Satisfa\u00E7\u00E3o',
         data: conss.map(c => {
           const t = byC[c].bom + byC[c].aten + byC[c].ruim;
           return t ? Math.round(byC[c].bom / t * 100) : 0;
@@ -294,13 +407,13 @@ export function createSatModule({
 
   async function hdlExcelSat() {
     if (!S.satRecords.length) {
-      showToast('Sem dados de satisfação', 'warn');
+      showToast('Sem dados de satisfa\u00E7\u00E3o', 'warn');
       return;
     }
 
     try {
       const ExcelJS = window.ExcelJS;
-      if (!ExcelJS) throw new Error('ExcelJS não está disponível');
+      if (!ExcelJS) throw new Error('ExcelJS n\u00E3o est\u00E1 dispon\u00EDvel');
 
       const wb = new ExcelJS.Workbook();
       const ws1 = wb.addWorksheet('Dados');
@@ -320,7 +433,7 @@ export function createSatModule({
       ws2.columns = [
         { header: 'Consultor', key: 'name', width: 22 },
         { header: 'BOM', key: 'bom', width: 8 },
-        { header: 'ATENÇÃO', key: 'aten', width: 10 },
+        { header: 'ATEN\u00C7\u00C3O', key: 'aten', width: 10 },
         { header: 'RUIM', key: 'ruim', width: 8 },
         { header: 'Total', key: 'total', width: 8 },
         { header: '% BOM', key: 'pct', width: 10 },
@@ -331,7 +444,7 @@ export function createSatModule({
       S.satRecords.forEach(r => {
         if (!byC[r.name]) byC[r.name] = { bom: 0, aten: 0, ruim: 0 };
         if (r.cat === 'BOM') byC[r.name].bom += 1;
-        else if (r.cat === 'ATENÇÃO') byC[r.name].aten += 1;
+        else if (r.cat === 'ATEN\u00C7\u00C3O') byC[r.name].aten += 1;
         else byC[r.name].ruim += 1;
       });
       Object.entries(byC).forEach(([name, d]) => {
@@ -346,7 +459,7 @@ export function createSatModule({
       a.download = `tracker_satisfacao_${new Date().toISOString().slice(0, 10)}.xlsx`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Excel de satisfação exportado!');
+      showToast('Excel de satisfa\u00E7\u00E3o exportado!');
     } catch (e) {
       showToast(`Erro: ${e.message}`, 'err');
     }
@@ -362,7 +475,11 @@ export function createSatModule({
     renderSatCards,
     renderSatCharts,
     hdlExcelSat,
+    renderSatOverview,
   };
 }
+
+
+
 
 

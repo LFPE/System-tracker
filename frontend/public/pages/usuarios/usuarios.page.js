@@ -1,10 +1,10 @@
-﻿export function createAdminModule({ S, api, showToast, closeModal }) {
+export function createAdminModule({ S, api, showToast, closeModal }) {
   async function renderUsers() {
     const el = document.getElementById('users-tbody');
     if (!el) return;
 
     if (S.user?.role !== 'admin') {
-      el.innerHTML = '<tr class="table-empty-row"><td colspan="4">Apenas administradores podem gerenciar usuários.</td></tr>';
+      el.innerHTML = '<tr class="table-empty-row"><td colspan="4">Apenas administradores podem gerenciar usu\u00e1rios.</td></tr>';
       return;
     }
 
@@ -17,8 +17,8 @@
           <td class="cell-center"><span class="tag ${u.role === 'admin' ? 'tag-rev' : 'tag-trat'}">${u.role}</span></td>
           <td class="cell-center">
             ${u.login !== 'admin'
-              ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.login}')">🗑 Remover</button>`
-              : '<span class="cell-placeholder">—</span>'}
+              ? `<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id},'${u.login}')">Remover</button>`
+              : '<span class="cell-placeholder">\u2014</span>'}
           </td>
         </tr>`).join('');
     } catch (e) {
@@ -49,18 +49,18 @@
       await api.post('/users', { login, name, pass, role });
       closeModal();
       renderUsers();
-      showToast('Usuário criado!');
+      showToast('Usu\u00e1rio criado!');
     } catch (e) {
       showToast(e.message, 'err');
     }
   }
 
   async function deleteUser(id, login) {
-    if (!window.confirm(`Remover usuário "${login}"?`)) return;
+    if (!window.confirm(`Remover usu\u00e1rio "${login}"?`)) return;
     try {
       await api.del(`/users/${id}`);
       renderUsers();
-      showToast('Usuário removido.');
+      showToast('Usu\u00e1rio removido.');
     } catch (e) {
       showToast(e.message, 'err');
     }
@@ -73,4 +73,3 @@
     deleteUser,
   };
 }
-

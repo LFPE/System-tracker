@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
@@ -7,23 +7,33 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <title>TRACKER</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <link rel="stylesheet" href="/assets/css/main.css"/>
 </head>
-<body>
+<body class="app-booting">
 <canvas id="confetti-canvas"></canvas>
 <div id="toast-container"></div>
+<div id="boot-splash" aria-live="polite">
+  <div class="boot-card">
+    <div class="boot-logo">TR</div>
+    <div class="boot-copy">
+      <strong>TRACKER</strong>
+      <span>Verificando sess&atilde;o...</span>
+    </div>
+  </div>
+</div>
 
 <!-- SPOTLIGHT -->
 <div id="spotlight-bg" onclick="closeSpotlight()">
   <div id="spotlight" onclick="event.stopPropagation()">
     <div class="spotlight-input-wrap">
       <span class="spotlight-prefix">Ir</span>
-      <input type="text" id="spotlight-input" placeholder="Buscar aba ou ação..." oninput="filterSpotlight(this.value)" onkeydown="spotlightKey(event)" autocomplete="off"/>
+      <input type="text" id="spotlight-input" placeholder="Buscar aba ou a&ccedil;&atilde;o..." oninput="filterSpotlight(this.value)" onkeydown="spotlightKey(event)" autocomplete="off"/>
       <span class="spotlight-esc">ESC</span>
     </div>
     <div class="spotlight-results" id="spotlight-results"></div>
@@ -43,16 +53,16 @@
       <div class="login-logo">TR</div>
       <div class="login-logo-text">
         <h1>Tracker</h1>
-        <span>Sistema de Retenção</span>
+        <span>Sistema de Reten&ccedil;&atilde;o</span>
       </div>
     </div>
     <div class="login-header">
       <h2>Bem-vindo de volta</h2>
       <p>Entre com suas credenciais para acessar o sistema</p>
     </div>
-    <div class="login-err" id="login-err">Usuario ou senha incorretos.</div>
+    <div class="login-err" id="login-err">Usu&aacute;rio ou senha incorretos.</div>
     <div class="lf">
-      <label for="li-user">Usuário</label>
+      <label for="li-user">Usu&aacute;rio</label>
       <div class="lf-input-wrap">
         <svg class="lf-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M10 10a4 4 0 100-8 4 4 0 000 8zm-7 8a7 7 0 0114 0H3z"/></svg>
         <input type="text" id="li-user" placeholder="seu.login" autocomplete="username" autocorrect="off" autocapitalize="none" onkeydown="if(event.key==='Enter')doLogin()"/>
@@ -62,7 +72,7 @@
       <label for="li-pass">Senha</label>
       <div class="lf-input-wrap">
         <svg class="lf-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5 8V6a5 5 0 0110 0v2h1a1 1 0 011 1v7a2 2 0 01-2 2H5a2 2 0 01-2-2V9a1 1 0 011-1h1zm5-4a3 3 0 00-3 3v2h6V7a3 3 0 00-3-3zm0 8a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" clip-rule="evenodd"/></svg>
-        <input type="password" id="li-pass" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
+        <input type="password" id="li-pass" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"/>
       </div>
     </div>
     <button class="btn-login" id="btn-login-submit" onclick="doLogin()">Entrar</button>
@@ -73,106 +83,109 @@
 <!-- APP -->
 <div id="app">
   <div class="topbar">
-    <div class="brand">
-      <div class="brand-mark">TK</div>
-      <div class="brand-text"><h1>TRACKER</h1><span id="brand-sub">Coobrastur</span></div>
+    <div class="topbar-start">
+      <div class="brand">
+        <div class="brand-mark">TK</div>
+        <div class="brand-text"><h1>TRACKER</h1><span id="brand-sub">Coobrastur</span></div>
+      </div>
+      <button class="spotlight-btn" onclick="openSpotlight()">
+        <span class="spotlight-prefix">Ir</span>
+        <span class="spotlight-copy">
+          <strong>Buscar</strong>
+          <span>Comandos, abas e a&ccedil;&otilde;es</span>
+        </span>
+        <span class="spotlight-btn-kb">Ctrl K</span>
+      </button>
     </div>
-    <div class="topbar-div"></div>
-    <button class="spotlight-btn" onclick="openSpotlight()">
-      <span class="spotlight-prefix">Ir</span> Buscar ou navegar...
-      <span class="spotlight-btn-kb">Ctrl K</span>
-    </button>
-    <div class="topbar-div"></div>
-    <div class="kpi-pill"><div class="kv blue" id="hdr-total">0</div><div class="kl">Registros</div></div>
-    <div class="kpi-pill"><div class="kv green" id="hdr-taxa">0%</div><div class="kl">Reversão</div></div>
-    <div class="kpi-pill"><div class="kv gold" id="hdr-sat">—</div><div class="kl">Satisfação</div></div>
-    <div class="topbar-spacer"></div>
-    <div class="flex topbar-actions">
-      <button class="tb-btn gold" onclick="hdlExcel()">Exportar Excel</button>
-      <button class="tb-btn" onclick="hdlPDF()">Gerar PDF</button>
-      <button class="tb-btn" id="btn-backup-top" onclick="hdlExportBackup()">Backup</button>
-      <button class="tb-btn" onclick="toggleTheme()" id="theme-icon">Tema</button>
+    <div class="topbar-center">
+      <div class="topbar-kpis">
+        <div class="kpi-pill"><div class="kv blue" id="hdr-total">0</div><div class="kl">Registros</div></div>
+        <div class="kpi-pill"><div class="kv green" id="hdr-taxa">0%</div><div class="kl">Revers&atilde;o</div></div>
+        <div class="kpi-pill"><div class="kv gold" id="hdr-sat">&mdash;</div><div class="kl">Satisfa&ccedil;&atilde;o</div></div>
+      </div>
     </div>
-    <div class="topbar-div"></div>
-    <div class="user-chip" onclick="openAccModal()">
-      <div class="user-avatar" id="user-av">?</div>
-      <span class="user-name" id="user-disp">—</span>
+    <div class="topbar-end">
+      <div class="topbar-actions">
+        <button class="tb-btn gold" onclick="hdlExcel()">Exportar Excel</button>
+        <button class="tb-btn" onclick="hdlPDF()">Gerar PDF</button>
+        <button class="tb-btn" id="btn-backup-top" onclick="hdlExportBackup()">Backup</button>
+      </div>
+      <div class="topbar-account">
+        <button class="tb-btn tb-icon-btn" onclick="toggleTheme()" id="theme-icon" aria-label="Alternar tema" title="Alternar tema">Tema</button>
+        <div class="user-chip" onclick="openAccModal()">
+          <div class="user-avatar" id="user-av">?</div>
+          <div class="user-meta">
+            <span class="user-label">Conta ativa</span>
+            <span class="user-name" id="user-disp">&mdash;</span>
+          </div>
+        </div>
+        <div class="clock" id="clock">00:00</div>
+      </div>
     </div>
-    <div class="clock" id="clock">00:00</div>
     <button class="hamburger" onclick="openSpotlight()">Menu</button>
   </div>
 
   <div class="layout">
     <div class="sidebar">
-      <div class="sidebar-section">Principal</div>
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-mark"></div>
+        <div class="sidebar-brand-copy">
+          <strong>TRACKER</strong>
+          <span>Painel Operacional</span>
+        </div>
+      </div>
+      <div class="sidebar-section">Vis&atilde;o Geral</div>
       <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard',this)"><span class="nav-icon">DB</span> Dashboard</button>
-      <button class="nav-item" id="nav-import" onclick="switchTab('import',this)"><span class="nav-icon">IM</span> Importar</button>
-      <button class="nav-item" id="nav-history" onclick="switchTab('history',this)"><span class="nav-icon">HI</span> Histórico</button>
-      <div class="sidebar-section">Análise</div>
-      <button class="nav-item" id="nav-stats" onclick="switchTab('stats',this)"><span class="nav-icon">ES</span> Estatísticas</button>
-      <button class="nav-item" id="nav-charts" onclick="switchTab('charts',this)"><span class="nav-icon">GR</span> Gráficos</button>
-      <button class="nav-item" id="nav-heatmap" onclick="switchTab('heatmap',this)"><span class="nav-icon">HM</span> Heatmap</button>
-      <div class="sidebar-section">Equipe</div>
-      <button class="nav-item" id="nav-sat" onclick="switchTab('sat',this)"><span class="nav-icon">ST</span> Satisfação</button>
       <button class="nav-item" id="nav-ranking" onclick="switchTab('ranking',this)"><span class="nav-icon">RK</span> Ranking</button>
-      <div class="sidebar-section">Sistema</div>
-      <button class="nav-item" id="nav-users" onclick="switchTab('users',this)"><span class="nav-icon">US</span> Usuários</button>
+      <button class="nav-item" id="nav-import" onclick="switchTab('import',this)"><span class="nav-icon">RT</span> REATs</button>
+      <button class="nav-item" id="nav-sat" onclick="switchTab('sat',this)"><span class="nav-icon">ST</span> Satisfa&ccedil;&atilde;o</button>
+      <button class="nav-item" id="nav-stats" onclick="switchTab('stats',this)"><span class="nav-icon">RL</span> Relat&oacute;rio</button>
+      <div class="sidebar-section">Ferramentas</div>
+      <button class="nav-item" id="nav-history" onclick="switchTab('history',this)"><span class="nav-icon">HI</span> Hist&oacute;rico</button>
+      <button class="nav-item" id="nav-charts" onclick="switchTab('charts',this)"><span class="nav-icon">GR</span> Gr&aacute;ficos</button>
+      <button class="nav-item" id="nav-heatmap" onclick="switchTab('heatmap',this)"><span class="nav-icon">HM</span> Heatmap</button>
+      <button class="nav-item" id="nav-users" onclick="switchTab('users',this)"><span class="nav-icon">US</span> Usu&aacute;rios</button>
       <div class="sidebar-bottom">
         <button class="sidebar-export-btn" onclick="hdlExcel()">Exportar Excel</button>
         <button class="sidebar-export-btn" id="btn-backup-side" onclick="hdlExportBackup()">Backup</button>
+        <button class="sidebar-export-btn" onclick="openAccModal()">Conta</button>
       </div>
     </div>
 
     <div class="content">
       <!-- DASHBOARD -->
       <div id="tab-dashboard" class="app-page page-dashboard">
-        <div class="sec-hdr">
+        <div class="page-head page-head-dashboard">
           <div>
-            <div class="dash-hello">Olá, <span id="dash-name">—</span></div>
-            <div class="sec-sub" id="dash-date-sub">—</div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-subtitle">Bem-vindo de volta, <span id="dash-name">&mdash;</span></div>
           </div>
-          <div class="flex">
-            <div class="streak-badge" id="streak-badge">0 dias seguidos</div>
-          </div>
+          <div class="page-chip" id="dash-month-chip">&mdash;</div>
         </div>
         <div id="perf-alerts"></div>
-        <div class="g4 u-mb-18" id="dash-kpis"></div>
-        <div class="g2 u-mb-18">
-          <div class="dash-meta-card">
-            <div class="flex-between u-mb-14">
-              <div>
-                <div class="dash-meta-title">Meta de Reversão</div>
-                <div class="text-muted-sm">Objetivo: 40% de reversão</div>
+        <div class="dash-grid-top" id="dash-kpis"></div>
+        <div class="dash-grid-main">
+          <div class="table-wrap dash-table-panel">
+            <div class="table-hdr dash-table-header">Top Consultoras</div>
+            <div class="dash-table-scroll">
+              <div id="dash-top-cons"></div>
+            </div>
+          </div>
+          <div class="card dash-chart-panel">
+            <div class="dash-chart-title">Revers&otilde;es vs Cancelamentos</div>
+            <div class="dash-chart-shell">
+              <div class="chart-frame-sm dash-chart-frame">
+                <canvas id="dash-outcome-chart"></canvas>
               </div>
-              <div class="dash-trend" id="dash-meta-trend">— 0%</div>
+              <div class="dash-chart-legend" id="dash-outcome-legend"></div>
             </div>
-            <div class="dash-meta-value-row">
-              <div class="dash-meta-value" id="dash-taxa-val">0%</div>
-              <div class="dash-meta-target">Meta: <strong class="gold-text">40%</strong></div>
-            </div>
-            <div class="prog-bar"><div class="prog-fill u-w-0" id="dash-prog"></div></div>
           </div>
-          <div class="card">
-            <div class="card-title">Top Consultores</div>
-            <div id="dash-top-cons"></div>
-          </div>
-        </div>
-        <div class="card u-mb-18">
-          <div class="flex-between u-mb-14">
-            <div class="card-title card-title-inline">Comparativo Mensal</div>
-            <select id="dash-comp-mes" class="select-compact" onchange="renderDashComp()"></select>
-          </div>
-          <div class="g4" id="dash-comp-cards"></div>
-        </div>
-        <div class="card">
-          <div class="card-title">Conquistas da Equipe</div>
-          <div class="g4" id="dash-achievements"></div>
         </div>
       </div>
 
       <!-- IMPORTAR -->
       <div id="tab-import" class="app-page page-import hidden">
-        <div class="sec-hdr"><div><div class="sec-title">Importar REATs</div><div class="sec-sub">Cole o texto do sistema e salve os registros do dia</div></div></div>
+        <div class="sec-hdr"><div><div class="sec-title">REATs</div><div class="sec-sub">Importe, revise e salve os atendimentos do dia</div></div></div>
         <div class="steps">
           <div class="step-dot done" id="sc1">1</div><span class="step-lbl step-lbl-active" id="sl1">Data</span>
           <div class="step-line" id="ln1"></div>
@@ -184,7 +197,7 @@
           <div class="g2">
             <div class="stack-col-14">
               <div class="card">
-                <div class="card-title">Data do Relatório</div>
+                <div class="card-title">Data do Relat&oacute;rio</div>
                 <input type="date" id="date-input" class="u-w-full"/>
                 <p class="hint-note">Use normalmente o dia anterior ao atual</p>
               </div>
@@ -219,16 +232,16 @@
             <div class="flex success-actions">
               <button class="btn btn-primary" onclick="resetImport()">Importar outro dia</button>
               <button class="btn btn-gold" onclick="hdlExcel()">Exportar Excel</button>
-              <button class="btn btn-ghost" onclick="switchTab('charts',null)">Ver gráficos</button>
+              <button class="btn btn-ghost" onclick="switchTab('charts',null)">Ver gr&aacute;ficos</button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- HISTÓRICO -->
+      <!-- HISTORICO -->
       <div id="tab-history" class="app-page page-history hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">Histórico</div><div class="sec-sub" id="hist-subtitle">—</div></div>
+          <div><div class="sec-title">Hist&oacute;rico</div><div class="sec-sub" id="hist-subtitle">&mdash;</div></div>
           <div class="flex">
             <button class="btn btn-gold btn-sm" onclick="hdlExcel()">Exportar Excel</button>
             <button class="btn btn-ghost btn-sm" onclick="hdlPDF()">Gerar PDF</button>
@@ -253,17 +266,17 @@
         <div id="hist-list"></div>
       </div>
 
-      <!-- ESTATÍSTICAS -->
+      <!-- ESTATISTICAS -->
       <div id="tab-stats" class="app-page page-stats hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">Estatísticas</div><div class="sec-sub">Análise de performance por consultor</div></div>
-          <select id="f-mes" onchange="renderStats()"><option value="">Todo o período</option></select>
+          <div><div class="sec-title">Relat&oacute;rio Di&aacute;rio</div><div class="sec-sub">Resumo operacional com indicadores da equipe</div></div>
+          <select id="f-mes" onchange="renderStats()"><option value="">Todo o per&iacute;odo</option></select>
         </div>
         <div id="perf-alerts-stats"></div>
         <div class="g4 u-mb-18" id="big-stats"></div>
         <div class="card stats-card">
           <div class="flex-between stats-row">
-            <span class="stats-label">Taxa de Reversão Geral</span>
+            <span class="stats-label">Taxa de Revers&atilde;o Geral</span>
             <span class="stats-value" id="taxa-geral">0%</span>
           </div>
           <div class="prog-bar"><div class="prog-fill u-w-0" id="prog-fill"></div></div>
@@ -278,22 +291,22 @@
         </div>
       </div>
 
-      <!-- GRÁFICOS -->
+      <!-- GRAFICOS -->
       <div id="tab-charts" class="app-page page-charts hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">Ver gráficos</div><div class="sec-sub">Visualizações de performance</div></div>
-          <select id="f-mes-chart" onchange="renderCharts()"><option value="">Todo o período</option></select>
+          <div><div class="sec-title">Ver gr&aacute;ficos</div><div class="sec-sub">Visualiza&ccedil;&otilde;es de performance</div></div>
+          <select id="f-mes-chart" onchange="renderCharts()"><option value="">Todo o per&iacute;odo</option></select>
         </div>
         <div class="g2 u-mb-14">
-          <div class="chart-wrap"><div class="chart-title">Taxa de Reversão por Dia</div><div class="chart-frame-sm"><canvas id="chart-taxa"></canvas></div></div>
-          <div class="chart-wrap"><div class="chart-title">Distribuição de Status</div><div class="chart-frame-sm"><canvas id="chart-pie"></canvas></div></div>
+          <div class="chart-wrap"><div class="chart-title">Taxa de Revers&atilde;o por Dia</div><div class="chart-frame-sm"><canvas id="chart-taxa"></canvas></div></div>
+          <div class="chart-wrap"><div class="chart-title">Distribui&ccedil;&atilde;o de Status</div><div class="chart-frame-sm"><canvas id="chart-pie"></canvas></div></div>
         </div>
         <div class="chart-wrap u-mb-14">
           <div class="chart-title">Volume por Consultor</div>
           <div class="chart-frame-md"><canvas id="chart-bar"></canvas></div>
         </div>
         <div class="chart-wrap">
-          <div class="chart-title">Comparativo mês a mês</div>
+          <div class="chart-title">Comparativo m&ecirc;s a m&ecirc;s</div>
           <div class="chart-frame-sm"><canvas id="chart-comp"></canvas></div>
         </div>
       </div>
@@ -301,33 +314,34 @@
       <!-- HEATMAP -->
       <div id="tab-heatmap" class="app-page page-heatmap hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">Heatmap de horários</div><div class="sec-sub">Quais horas do dia têm mais reversões</div></div>
-          <select id="f-mes-heat" onchange="renderHeatmap()"><option value="">Todo o período</option></select>
+          <div><div class="sec-title">Heatmap de hor&aacute;rios</div><div class="sec-sub">Quais horas do dia t&ecirc;m mais revers&otilde;es</div></div>
+          <select id="f-mes-heat" onchange="renderHeatmap()"><option value="">Todo o per&iacute;odo</option></select>
         </div>
         <div class="card u-mb-14">
-          <div class="card-title">Reversões por Hora do Dia</div>
+          <div class="card-title">Revers&otilde;es por Hora do Dia</div>
           <div id="heatmap-wrap" class="heatmap-scroll"></div>
         </div>
         <div class="g2">
-          <div class="card"><div class="card-title">Melhores horários</div><div id="best-hours"></div></div>
+          <div class="card"><div class="card-title">Melhores hor&aacute;rios</div><div id="best-hours"></div></div>
           <div class="card"><div class="card-title">Performance por turno</div><div id="shift-stats"></div></div>
         </div>
       </div>
 
-      <!-- SATISFAÇÃO -->
+      <!-- SATISFACAO -->
       <div id="tab-sat" class="app-page page-sat hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">Controle de satisfação</div><div class="sec-sub">BOM (4-5) · ATENÇÃO (2-3) · RUIM (0-1)</div></div>
+          <div><div class="sec-title">Satisfa&ccedil;&atilde;o</div><div class="sec-sub">Leitura consolidada das avalia&ccedil;&otilde;es da equipe</div></div>
           <div class="flex">
             <button class="btn btn-gold btn-sm" onclick="hdlExcelSat()">Exportar Excel Mensal</button>
-            <select id="sat-mes-sel" class="select-compact-md" onchange="renderSat()"><option value="">Todos os períodos</option></select>
+            <select id="sat-mes-sel" class="select-compact-md" onchange="renderSat()"><option value="">Todos os per&iacute;odos</option></select>
           </div>
         </div>
+        <div class="sat-overview-grid" id="sat-overview"></div>
         <div class="sat-tabs">
           <button class="btn btn-primary btn-sm" id="sat-tab-import" onclick="switchSatTab('import')">Importar</button>
           <button class="btn btn-ghost btn-sm" id="sat-tab-mensal" onclick="switchSatTab('mensal')">Mensal</button>
           <button class="btn btn-ghost btn-sm" id="sat-tab-consultores" onclick="switchSatTab('consultores')">Consultores</button>
-          <button class="btn btn-ghost btn-sm" id="sat-tab-charts" onclick="switchSatTab('charts')">Ver gráficos</button>
+          <button class="btn btn-ghost btn-sm" id="sat-tab-charts" onclick="switchSatTab('charts')">Ver gr&aacute;ficos</button>
         </div>
         <div id="sat-panel-import">
           <div class="g2">
@@ -335,7 +349,7 @@
               <div class="card">
                 <div class="card-title">Colar dados da pesquisa</div>
                 <p class="sat-note">Cole os dados exportados do sistema (formato TSV).</p>
-                <textarea id="sat-raw" class="textarea-sat" placeholder="Cole os dados da pesquisa de satisfação aqui (TSV)..."></textarea>
+                <textarea id="sat-raw" class="textarea-sat" placeholder="Cole os dados da pesquisa de satisfa&ccedil;&atilde;o aqui (TSV)..."></textarea>
                 <div class="flex u-mt-10">
                   <button class="btn btn-primary u-flex-1-center" onclick="parseSatData()">Processar dados</button>
                   <button class="btn btn-ghost" onclick="document.getElementById('sat-raw').value=''">Limpar</button>
@@ -355,7 +369,7 @@
               <div id="sat-prev-content" class="hidden">
                 <div class="g3 u-mb-14" id="sat-prev-kpis"></div>
                 <div id="sat-prev-list" class="sat-preview-list"></div>
-                <button class="btn btn-success btn-full-wide" onclick="saveSatData()">Salvar avaliações</button>
+                <button class="btn btn-success btn-full-wide" onclick="saveSatData()">Salvar avalia&ccedil;&otilde;es</button>
               </div>
             </div>
           </div>
@@ -364,18 +378,18 @@
         <div id="sat-panel-consultores" class="hidden"><div class="g4" id="sat-cons-cards"></div></div>
         <div id="sat-panel-charts" class="hidden">
           <div class="g2 u-mb-14">
-            <div class="chart-wrap"><div class="chart-title">Avaliações por Consultor</div><div class="chart-frame-md"><canvas id="sat-chart-bar"></canvas></div></div>
-            <div class="chart-wrap"><div class="chart-title">Distribuição Geral</div><div class="chart-frame-md"><canvas id="sat-chart-pie"></canvas></div></div>
+            <div class="chart-wrap"><div class="chart-title">Avalia&ccedil;&otilde;es por Consultor</div><div class="chart-frame-md"><canvas id="sat-chart-bar"></canvas></div></div>
+            <div class="chart-wrap"><div class="chart-title">Distribui&ccedil;&atilde;o Geral</div><div class="chart-frame-md"><canvas id="sat-chart-pie"></canvas></div></div>
           </div>
-          <div class="chart-wrap"><div class="chart-title">% Satisfação por Consultor</div><div class="chart-frame-sm"><canvas id="sat-chart-pct"></canvas></div></div>
+          <div class="chart-wrap"><div class="chart-title">% Satisfa&ccedil;&atilde;o por Consultor</div><div class="chart-frame-sm"><canvas id="sat-chart-pct"></canvas></div></div>
         </div>
       </div>
 
       <!-- RANKING -->
       <div id="tab-ranking" class="app-page page-ranking hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">Ranking geral</div><div class="sec-sub">Performance completa da equipe</div></div>
-          <select id="f-mes-rank" onchange="renderRanking()"><option value="">Todo o período</option></select>
+          <div><div class="sec-title">Ranking</div><div class="sec-sub">Desempenho comparativo das consultoras</div></div>
+          <select id="f-mes-rank" onchange="renderRanking()"><option value="">Todo o per&iacute;odo</option></select>
         </div>
         <div id="ranking-podium" class="ranking-podium"></div>
         <div class="table-wrap">
@@ -388,21 +402,21 @@
         </div>
       </div>
 
-      <!-- USUÁRIOS -->
+      <!-- USUARIOS -->
       <div id="tab-users" class="app-page page-users hidden">
         <div class="sec-hdr">
-          <div><div class="sec-title">Usuários</div><div class="sec-sub">Gerenciar acessos ao sistema</div></div>
+          <div><div class="sec-title">Usu&aacute;rios</div><div class="sec-sub">Gerenciar acessos ao sistema</div></div>
           <div class="flex">
-            <button class="btn btn-primary u-display-none" id="btn-add-user" onclick="openAddUser()">+ Novo Usuário</button>
+            <button class="btn btn-primary u-display-none" id="btn-add-user" onclick="openAddUser()">+ Novo Usu&aacute;rio</button>
             <label class="btn btn-purple clickable-label" id="btn-import-backup">Importar backup<input type="file" accept=".json" class="u-display-none" onchange="hdlImportBackup(this)"/></label>
           </div>
         </div>
         <div class="table-wrap">
-          <div class="table-hdr">Usuários com acesso ao sistema</div>
-          <table><thead><tr><th>Login</th><th>Nome</th><th class="u-text-center">Perfil</th><th class="u-text-center">Ações</th></tr></thead><tbody id="users-tbody"></tbody></table>
+          <div class="table-hdr">Usu&aacute;rios com acesso ao sistema</div>
+          <table><thead><tr><th>Login</th><th>Nome</th><th class="u-text-center">Perfil</th><th class="u-text-center">A&ccedil;&otilde;es</th></tr></thead><tbody id="users-tbody"></tbody></table>
         </div>
         <div class="card sync-card">
-          <p class="sync-text"><strong>Dados sincronizados</strong> via banco D1 e disponíveis em qualquer dispositivo.</p>
+          <p class="sync-text"><strong>Dados sincronizados</strong> via banco D1 e dispon&iacute;veis em qualquer dispositivo.</p>
         </div>
       </div>
     </div>
@@ -410,10 +424,10 @@
 
   <div class="bottom-nav">
     <button class="bn-item active" id="bn-dashboard" onclick="switchTab('dashboard',null);setBottomNav('dashboard')"><span class="bn-icon">DB</span><span class="bn-label">Home</span></button>
-    <button class="bn-item" id="bn-import" onclick="switchTab('import',null);setBottomNav('import')"><span class="bn-icon">IM</span><span class="bn-label">Importar</span></button>
-    <button class="bn-item" id="bn-history" onclick="switchTab('history',null);setBottomNav('history')"><span class="bn-icon">HI</span><span class="bn-label">Histórico</span></button>
-    <button class="bn-item" id="bn-stats" onclick="switchTab('stats',null);setBottomNav('stats')"><span class="bn-icon">ES</span><span class="bn-label">Indic.</span></button>
-    <button class="bn-item" id="bn-sat" onclick="switchTab('sat',null);setBottomNav('sat')"><span class="bn-icon">ST</span><span class="bn-label">Satisfação</span></button>
+    <button class="bn-item" id="bn-import" onclick="switchTab('import',null);setBottomNav('import')"><span class="bn-icon">RT</span><span class="bn-label">REATs</span></button>
+    <button class="bn-item" id="bn-history" onclick="switchTab('history',null);setBottomNav('history')"><span class="bn-icon">HI</span><span class="bn-label">Hist&oacute;rico</span></button>
+    <button class="bn-item" id="bn-stats" onclick="switchTab('stats',null);setBottomNav('stats')"><span class="bn-icon">RL</span><span class="bn-label">Relat.</span></button>
+    <button class="bn-item" id="bn-sat" onclick="switchTab('sat',null);setBottomNav('sat')"><span class="bn-icon">ST</span><span class="bn-label">Satisfa&ccedil;&atilde;o</span></button>
   </div>
 </div>
 
@@ -429,7 +443,7 @@
         <option value="Cancelado">Cancelado</option>
       </select>
     </div>
-    <div class="mf"><label>Análise / Observação</label><textarea id="edit-analise" class="edit-analise"></textarea></div>
+    <div class="mf"><label>An&aacute;lise / Observa&ccedil;&atilde;o</label><textarea id="edit-analise" class="edit-analise"></textarea></div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveEdit()">Salvar</button></div>
   </div>
 </div>
@@ -442,7 +456,7 @@
       <div class="text-muted-sm" id="acc-login-lbl"></div>
     </div>
     <div class="mf"><label>Senha atual</label><input type="password" id="acc-current-pass" placeholder="Digite sua senha atual" autocomplete="current-password"/></div>
-    <div class="mf"><label>Nova senha</label><input type="password" id="acc-pass" placeholder="mínimo 8 caracteres com letras e números" autocomplete="new-password"/></div>
+    <div class="mf"><label>Nova senha</label><input type="password" id="acc-pass" placeholder="m&iacute;nimo 8 caracteres com letras e n&uacute;meros" autocomplete="new-password"/></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()">Fechar</button>
       <button class="btn btn-primary" onclick="changeMyPass()">Atualizar</button>
@@ -452,11 +466,11 @@
 </div>
 <div class="modal-bg" id="user-modal">
   <div class="modal">
-    <h3>Novo usuário</h3>
+    <h3>Novo usu&aacute;rio</h3>
     <div class="mf"><label>Login</label><input type="text" id="m-login" placeholder="ex: joao.silva" autocomplete="off" autocapitalize="none"/></div>
-    <div class="mf"><label>Nome completo</label><input type="text" id="m-name" placeholder="ex: João Silva" autocomplete="off"/></div>
-    <div class="mf"><label>Senha</label><input type="password" id="m-pass" placeholder="mínimo 8 caracteres com letras e números" autocomplete="new-password"/></div>
-    <div class="mf"><label>Perfil</label><select id="m-role" class="u-w-full"><option value="user">Usuário</option><option value="admin">Admin</option></select></div>
+    <div class="mf"><label>Nome completo</label><input type="text" id="m-name" placeholder="ex: Jo&atilde;o Silva" autocomplete="off"/></div>
+    <div class="mf"><label>Senha</label><input type="password" id="m-pass" placeholder="m&iacute;nimo 8 caracteres com letras e n&uacute;meros" autocomplete="new-password"/></div>
+    <div class="mf"><label>Perfil</label><select id="m-role" class="u-w-full"><option value="user">Usu&aacute;rio</option><option value="admin">Admin</option></select></div>
     <div class="modal-actions"><button class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button class="btn btn-primary" onclick="saveUser()">Criar</button></div>
   </div>
 </div>
@@ -464,5 +478,8 @@
 <script type="module" src="/assets/js/main.js"></script>
 </body>
 </html>
+
+
+
 
 

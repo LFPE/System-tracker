@@ -1,5 +1,5 @@
-import { getConsultantSearchTerms, normalizeConsultantName } from '../../assets/js/shared/consultants.js';
-import { renderEmptyState } from '../../assets/js/shared/templates.js';
+import { getConsultantSearchTerms, normalizeConsultantName } from '../../assets/js/core/consultants.js';
+import { renderEmptyState } from '../../assets/js/core/templates.js';
 
 export function createReatsModule({
   S,
@@ -63,9 +63,9 @@ export function createReatsModule({
     const reData = /\b(\d{2}\/\d{2}\/\d{4})\b/;
     const reHora = /\b(\d{2}:\d{2})\b/;
     const reStatus = /\b(revertid[oa]|cancelad[oa]|em tratativa|tratativa)\b/i;
-    const reMotivo = /\b(financeiro|financeira|falecimento|mudança|transferência|desistência|viagem|doença|inadimplência|inadimplente|outros?)\b/i;
-    const rePlano = /\b(bronze|prata|ouro|diamante|premium|essencial|básico|básica)\b/i;
-    const reTipo = /\b(cancelamento|solicitação|pedido|reat)\b/i;
+    const reMotivo = /\b(financeiro|financeira|falecimento|mudan\u00E7a|transfer\u00EAncia|desist\u00EAncia|viagem|doen\u00E7a|inadimpl\u00EAncia|inadimplente|outros?)\b/i;
+    const rePlano = /\b(bronze|prata|ouro|diamante|premium|essencial|b\u00E1sico|b\u00E1sica)\b/i;
+    const reTipo = /\b(cancelamento|solicita\u00E7\u00E3o|pedido|reat)\b/i;
 
     for (let i = 0; i < lines.length; i += 1) {
       const line = lines[i];
@@ -160,7 +160,7 @@ export function createReatsModule({
     setHTML('prev-list', records.map(r => `
       <div class="prev-item">
         <span class="prev-tag ${r.status === 'Revertido' ? 'tag-rev' : r.status === 'Cancelado' ? 'tag-can' : 'tag-trat'}">${r.status}</span>
-        <strong>${r.hora}</strong> — ${r.consultor} | ${r.motivo} | ${r.plano}
+        <strong>${r.hora}</strong> \u2014 ${r.consultor} | ${r.motivo} | ${r.plano}
       </div>`).join(''));
 
     setText('prev-title', `${records.length} registros identificados`);
@@ -260,7 +260,7 @@ export function createReatsModule({
         ${items.map(r => `
           <div class="hist-item ${r.status === 'Revertido' ? 'rev' : r.status === 'Cancelado' ? 'can' : 'trat'}"${S.user?.role === 'admin' ? ` onclick="openEdit(${r.id})"` : ''}>
             <div>
-              <div class="hist-main">${r.hora} <span class="hist-separator">•</span> <strong>${r.consultor}</strong></div>
+              <div class="hist-main">${r.hora} <span class="hist-separator">\u2022</span> <strong>${r.consultor}</strong></div>
               <div class="hist-meta"><span>${r.tipo}</span><span>${r.motivo}</span><span>Plano: ${r.plano}</span></div>
               ${r.analise ? `<div class="hist-analise">${r.analise}</div>` : ''}
             </div>
@@ -274,7 +274,7 @@ export function createReatsModule({
     const r = S.records.find(x => x.id === id);
     if (!r) return;
     S.editingId = id;
-    setHTML('edit-info', `<strong>${r.hora}</strong> <span class="hist-separator">•</span> ${r.consultor}<br>${r.tipo} | ${r.motivo} | Plano: ${r.plano}`);
+    setHTML('edit-info', `<strong>${r.hora}</strong> <span class="hist-separator">\u2022</span> ${r.consultor}<br>${r.tipo} | ${r.motivo} | Plano: ${r.plano}`);
     document.getElementById('edit-status').value = r.status;
     document.getElementById('edit-analise').value = r.analise || '';
     document.getElementById('edit-modal').classList.add('open');

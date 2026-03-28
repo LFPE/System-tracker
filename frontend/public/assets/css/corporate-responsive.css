@@ -2,17 +2,29 @@
   .topbar{padding:0 20px}
   .content{padding:24px 20px}
   .g4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #login-screen::after{left:36px;bottom:40px;max-width:280px}
+  .login-card{margin-right:36px}
 }
 @media(max-width:900px){
-  .topbar{height:auto;min-height:68px;flex-wrap:wrap;padding:14px 16px}
+  .topbar{
+    height:auto;
+    min-height:72px;
+    flex-wrap:wrap;
+    padding:14px 16px;
+    gap:12px;
+  }
   .topbar-div,.kpi-pill,.clock{display:none}
   .spotlight-btn{order:3;width:100%}
   .layout{min-height:auto}
   .content{padding:18px 16px}
   .card,.chart-wrap,.table-wrap,.filter-bar{padding-left:18px;padding-right:18px}
+  #login-screen{justify-content:center}
+  #login-screen::after{display:none}
+  .login-card{margin:36px auto;max-width:480px}
 }
 @media(max-width:768px){
   #app{padding-bottom:82px}
+  .sidebar{display:none}
   .content{padding:16px}
   .sec-title{font-size:22px}
   .sec-sub{font-size:13px}
@@ -22,12 +34,16 @@
   .table-wrap{overflow-x:auto}
   .modal{padding:22px}
   .bottom-nav{display:flex;height:70px;padding:0 10px}
+  .hamburger{display:inline-flex;align-items:center;justify-content:center}
 }
 @media(max-width:560px){
+  .topbar{padding:12px 14px}
+  .brand-text span{display:none}
   .login-card{margin:18px;padding:28px 22px 24px}
   .dash-hello{font-size:24px}
   .kpi-card,.card,.chart-wrap{padding:18px}
   .btn,.btn-login,.tb-btn,.spotlight-btn{width:100%;justify-content:center}
+  .user-chip{width:100%;justify-content:center}
   .modal-actions{flex-direction:column}
   .modal-actions .btn{width:100%;justify-content:center}
 }
