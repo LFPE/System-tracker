@@ -1,5 +1,5 @@
 import { clearSessionCookie, readSessionToken, writeSessionCookie } from '../utils/session'
-import { getSessionUser, loginUser } from '../services/auth.service'
+import { getSessionUser, loginUser, revokeSession } from '../services/auth.service'
 import { validateLoginPayload } from '../validations/auth.validation'
 import type { PublicAppContext } from '../models/app.model'
 import { AppError, getErrorStatus, jsonError, jsonOk, readJsonBody } from '../utils/http'
@@ -7,10 +7,15 @@ import { AppError, getErrorStatus, jsonError, jsonOk, readJsonBody } from '../ut
 export async function loginController(c: PublicAppContext) {
   try {
     const { login, pass } = validateLoginPayload(await readJsonBody<Record<string, unknown>>(c, 'Credenciais invalidas'))
+    const existingToken = readSessionToken(c)
     const result = await loginUser(c.env.DB, c.env, login, pass)
 
     if (!result) {
       return jsonError(c, 401, new AppError(401, 'Usuario ou senha incorretos'), 'Usuario ou senha incorretos')
+    }
+
+    if (existingToken) {
+      await revokeSession(c.env.DB, c.env, existingToken)
     }
 
     writeSessionCookie(c, result.token)
@@ -20,7 +25,13 @@ export async function loginController(c: PublicAppContext) {
   }
 }
 
-export function logoutController(c: PublicAppContext) {
+export async function logoutController(c: PublicAppContext) {
+  const token = readSessionToken(c)
+
+  if (token) {
+    await revokeSession(c.env.DB, c.env, token)
+  }
+
   clearSessionCookie(c)
   return jsonOk(c)
 }

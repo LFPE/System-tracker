@@ -2,6 +2,7 @@ import { createUser, deleteUserById, listUsers, updateOwnPassword } from '../ser
 import { validateOwnPasswordPayload, validateUserCreatePayload } from '../validations/users.validation'
 import { validateRouteId } from '../validations/shared.validation'
 import type { AppContext } from '../models/app.model'
+import { clearSessionCookie } from '../utils/session'
 import { getErrorStatus, jsonError, jsonOk, readJsonBody } from '../utils/http'
 
 export async function getUsersController(c: AppContext) {
@@ -37,6 +38,7 @@ export async function updateOwnPasswordController(c: AppContext) {
     )
 
     await updateOwnPassword(c.env.DB, c.env, me.id, current_pass, pass)
+    clearSessionCookie(c)
     return jsonOk(c)
   } catch (error) {
     return jsonError(c, getErrorStatus(error, 400), error, 'Erro ao atualizar senha')
