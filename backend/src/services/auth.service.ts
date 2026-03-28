@@ -2,7 +2,7 @@ import type { D1Database } from '@cloudflare/workers-types'
 import type { Bindings } from '../config/bindings'
 import { normalizeLogin } from '../utils/input'
 import { createSessionToken, readSessionPayload, toAuthUser } from '../utils/session'
-import { hashPass, needsPasswordRehash, verifyPass } from '../utils/hash'
+import { hashPassword, needsPasswordRehash, verifyPassword } from '../utils/hash'
 
 export async function findUserByLogin(db: D1Database, login: string) {
   return db.prepare('SELECT id, login, name, role, pass_hash FROM users WHERE login = ?')
@@ -13,12 +13,12 @@ export async function findUserByLogin(db: D1Database, login: string) {
 export async function loginUser(db: D1Database, env: Partial<Bindings>, login: string, pass: string) {
   const user = await findUserByLogin(db, login)
 
-  if (!user || !(await verifyPass(pass, user.pass_hash, env))) {
+  if (!user || !(await verifyPassword(pass, user.pass_hash, env))) {
     return null
   }
 
-  if (needsPasswordRehash(user.pass_hash)) {
-    user.pass_hash = await hashPass(pass, env)
+  if (needsPasswordRehash(user.pass_hash, env)) {
+    user.pass_hash = await hashPassword(pass, env)
     await db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?').bind(user.pass_hash, user.id).run()
   }
 
