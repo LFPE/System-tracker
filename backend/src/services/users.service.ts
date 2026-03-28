@@ -3,6 +3,7 @@ import type { Bindings } from '../config/bindings'
 import type { UserCreateInput } from '../models/user.model'
 import { AppError } from '../utils/http'
 import { hashPassword, verifyPassword } from '../utils/hash'
+import { revokeUserSessions } from './auth.service'
 
 export async function listUsers(db: D1Database) {
   const result = await db.prepare(
@@ -34,6 +35,7 @@ export async function deleteUserById(db: D1Database, id: number) {
     throw new AppError(403, 'Nao e possivel remover o admin')
   }
 
+  await revokeUserSessions(db, user.id)
   await db.prepare('DELETE FROM users WHERE id = ?').bind(id).run()
 }
 
@@ -57,4 +59,6 @@ export async function updateOwnPassword(
   await db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?')
     .bind(await hashPassword(pass, env), userId)
     .run()
+
+  await revokeUserSessions(db, userId)
 }

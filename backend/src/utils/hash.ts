@@ -121,8 +121,8 @@ export async function hashPassword(pass: string, env?: Partial<Bindings>) {
   return `${PBKDF2_PREFIX}$${config.iterations}$${saltHex}$${digestHex}`
 }
 
-export async function signSessionValue(value: string, env?: Partial<Bindings>) {
-  return `sig$${await sha256Hex(`${getHashSalt(env)}session:${value}`)}`
+export async function hashSessionToken(token: string, env?: Partial<Bindings>) {
+  return sha256Hex(`${getHashSalt(env)}session-token:${token}`)
 }
 
 export async function verifyPassword(pass: string, storedHash: string, env?: Partial<Bindings>) {
@@ -150,3 +150,6 @@ export function needsPasswordRehash(storedHash: string, env?: Partial<Bindings>)
   const config = getPasswordHashConfig(env)
   return parsedPbkdf2.iterations < config.iterations || parsedPbkdf2.digestHex.length !== config.keyLength * 2
 }
+
+
+
