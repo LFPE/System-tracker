@@ -1,7 +1,7 @@
 import type { SatCategory, SatRecordInput } from '../models/sat.model'
 import { trimString } from '../utils/input'
 import { AppError } from '../utils/http'
-import { validateMonthFilter } from './shared.validation'
+import { validateMonthFilter, validateOptionalQueryText } from './shared.validation'
 
 const ATTENTION_LABELS = ['ATENÇÃO', 'ATENCAO', 'ATENÃ‡ÃƒO']
 const SAT_CATEGORIES: SatCategory[] = ['BOM', 'ATENÇÃO', 'RUIM']
@@ -47,7 +47,7 @@ function validateSatRecord(record: SatRecordInput, month: string) {
 export function validateSatQuery(query: Record<string, string | undefined>) {
   return {
     mes: validateMonthFilter(query.mes),
-    name: trimString(query.name),
+    name: validateOptionalQueryText(query.name, 'Nome'),
   }
 }
 

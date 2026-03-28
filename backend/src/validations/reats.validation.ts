@@ -1,7 +1,7 @@
 import type { ReatBackupPayload, ReatRecordInput, ReatStatus, SystemBackupPayload } from '../models/reats.model'
 import { trimString } from '../utils/input'
 import { AppError } from '../utils/http'
-import { validateDateRef, validateMonthFilter } from './shared.validation'
+import { validateDateRef, validateMonthFilter, validateOptionalQueryText } from './shared.validation'
 
 const REAT_STATUSES: ReatStatus[] = ['Revertido', 'Em Tratativa', 'Cancelado']
 
@@ -40,11 +40,11 @@ function validateStatusFilter(value: unknown) {
 
 export function validateReatsQuery(query: Record<string, string | undefined>) {
   return {
-    consultor: trimString(query.consultor),
+    consultor: validateOptionalQueryText(query.consultor, 'Consultor'),
     status: validateStatusFilter(query.status),
     data_ref: query.data_ref ? validateDateRef(query.data_ref) : '',
     mes: validateMonthFilter(query.mes),
-    q: trimString(query.q),
+    q: validateOptionalQueryText(query.q, 'Busca', 500),
   }
 }
 

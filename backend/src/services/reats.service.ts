@@ -6,6 +6,55 @@ import { trimString, normalizeLogin } from '../utils/input'
 import { AppError } from '../utils/http'
 import { replaceSatRecordsForMonth } from './sat.service'
 
+const LIST_REATS_SQL = `
+  SELECT * FROM reats
+  WHERE (? = '' OR consultor = ?)
+    AND (? = '' OR status = ?)
+    AND (? = '' OR data_ref = ?)
+    AND (? = '' OR data_ref LIKE ?)
+    AND (
+      ? = ''
+      OR consultor LIKE ?
+      OR motivo LIKE ?
+      OR analise LIKE ?
+      OR plano LIKE ?
+      OR texto LIKE ?
+    )
+  ORDER BY data_ref DESC, hora ASC
+`
+
+const REATS_STATS_TOTALS_SQL = `
+  SELECT
+    COUNT(*) as total,
+    SUM(CASE WHEN status='Revertido' THEN 1 ELSE 0 END) as revertidos,
+    SUM(CASE WHEN status='Cancelado' THEN 1 ELSE 0 END) as cancelados,
+    SUM(CASE WHEN status='Em Tratativa' THEN 1 ELSE 0 END) as tratativas
+  FROM reats
+  WHERE (? = '' OR data_ref LIKE ?)
+`
+
+const REATS_STATS_BY_CONSULTOR_SQL = `
+  SELECT consultor,
+    COUNT(*) as total,
+    SUM(CASE WHEN status='Revertido' THEN 1 ELSE 0 END) as revertidos,
+    SUM(CASE WHEN status='Cancelado' THEN 1 ELSE 0 END) as cancelados,
+    SUM(CASE WHEN status='Em Tratativa' THEN 1 ELSE 0 END) as tratativas
+  FROM reats
+  WHERE (? = '' OR data_ref LIKE ?)
+  GROUP BY consultor
+  ORDER BY total DESC
+`
+
+const REATS_STATS_BY_DATE_SQL = `
+  SELECT data_ref,
+    COUNT(*) as total,
+    SUM(CASE WHEN status='Revertido' THEN 1 ELSE 0 END) as revertidos
+  FROM reats
+  WHERE (? = '' OR data_ref LIKE ?)
+  GROUP BY data_ref
+  ORDER BY data_ref DESC
+`
+
 function normalizeBackupRole(value: unknown): Role {
   return trimString(value) === 'admin' ? 'admin' : 'user'
 }
@@ -17,38 +66,26 @@ export async function listReats(db: D1Database, filters: {
   mes: string
   q: string
 }) {
-  let sql = 'SELECT * FROM reats WHERE 1=1'
-  const params: string[] = []
+  const monthPrefix = filters.mes ? `${filters.mes}%` : ''
+  const search = filters.q ? `%${filters.q}%` : ''
 
-  if (filters.consultor) {
-    sql += ' AND consultor = ?'
-    params.push(filters.consultor)
-  }
+  const result = await db.prepare(LIST_REATS_SQL).bind(
+    filters.consultor,
+    filters.consultor,
+    filters.status,
+    filters.status,
+    filters.data_ref,
+    filters.data_ref,
+    monthPrefix,
+    monthPrefix,
+    filters.q,
+    search,
+    search,
+    search,
+    search,
+    search,
+  ).all<any>()
 
-  if (filters.status) {
-    sql += ' AND status = ?'
-    params.push(filters.status)
-  }
-
-  if (filters.data_ref) {
-    sql += ' AND data_ref = ?'
-    params.push(filters.data_ref)
-  }
-
-  if (filters.mes) {
-    sql += ' AND data_ref LIKE ?'
-    params.push(`${filters.mes}%`)
-  }
-
-  if (filters.q) {
-    sql += ' AND (consultor LIKE ? OR motivo LIKE ? OR analise LIKE ? OR plano LIKE ? OR texto LIKE ?)'
-    const search = `%${filters.q}%`
-    params.push(search, search, search, search, search)
-  }
-
-  sql += ' ORDER BY data_ref DESC, hora ASC'
-
-  const result = await db.prepare(sql).bind(...params).all<any>()
   return result.results
 }
 
@@ -115,38 +152,12 @@ export async function deleteReatsByDate(db: D1Database, dataRef: string) {
 }
 
 export async function getReatsStats(db: D1Database, month: string) {
-  const where = month ? 'WHERE data_ref LIKE ?' : ''
-  const whereParams = month ? [`${month}%`] : []
+  const monthPrefix = month ? `${month}%` : ''
 
   const [totals, byConsultor, byDate] = await Promise.all([
-    db.prepare(`
-      SELECT
-        COUNT(*) as total,
-        SUM(CASE WHEN status='Revertido' THEN 1 ELSE 0 END) as revertidos,
-        SUM(CASE WHEN status='Cancelado' THEN 1 ELSE 0 END) as cancelados,
-        SUM(CASE WHEN status='Em Tratativa' THEN 1 ELSE 0 END) as tratativas
-      FROM reats ${where}
-    `).bind(...whereParams).first<any>(),
-
-    db.prepare(`
-      SELECT consultor,
-        COUNT(*) as total,
-        SUM(CASE WHEN status='Revertido' THEN 1 ELSE 0 END) as revertidos,
-        SUM(CASE WHEN status='Cancelado' THEN 1 ELSE 0 END) as cancelados,
-        SUM(CASE WHEN status='Em Tratativa' THEN 1 ELSE 0 END) as tratativas
-      FROM reats ${where}
-      GROUP BY consultor
-      ORDER BY total DESC
-    `).bind(...whereParams).all<any>(),
-
-    db.prepare(`
-      SELECT data_ref,
-        COUNT(*) as total,
-        SUM(CASE WHEN status='Revertido' THEN 1 ELSE 0 END) as revertidos
-      FROM reats ${where}
-      GROUP BY data_ref
-      ORDER BY data_ref DESC
-    `).bind(...whereParams).all<any>(),
+    db.prepare(REATS_STATS_TOTALS_SQL).bind(monthPrefix, monthPrefix).first<any>(),
+    db.prepare(REATS_STATS_BY_CONSULTOR_SQL).bind(monthPrefix, monthPrefix).all<any>(),
+    db.prepare(REATS_STATS_BY_DATE_SQL).bind(monthPrefix, monthPrefix).all<any>(),
   ])
 
   return {

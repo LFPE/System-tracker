@@ -4,6 +4,17 @@ import { AppError } from '../utils/http'
 
 const VALID_ROLES: Role[] = ['admin', 'user']
 
+export function validateOptionalQueryText(value: unknown, label: string, maxLength = 255) {
+  const text = trimString(value)
+  if (!text) return ''
+
+  if (text.length > maxLength) {
+    throw new AppError(400, `${label} invalido`)
+  }
+
+  return text
+}
+
 export function validateMonthFilter(value: unknown) {
   const month = trimString(value)
   if (!month) return ''
