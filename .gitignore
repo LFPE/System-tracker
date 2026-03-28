@@ -101,6 +101,11 @@ temp/
 *.bak
 *.backup
 *.old
+tmp-preview*.log
+
+# Local Cloudflare runtime data
+.wrangler/
+meu_banco/
 
 # Database
 *.sqlite
@@ -126,4 +131,3 @@ docker-compose.override.yml
 *.pid.lock
 .grunt
 .lock-wscript
-
