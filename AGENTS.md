@@ -81,27 +81,43 @@ Ao receber uma tarefa:
 
 ## 7) Branches
 Usar estes padrões:
-- feat/nome-da-feature
-- fix/nome-do-problema
-- refactor/nome-da-area
-- test/nome-da-area
-- docs/nome-da-doc
-- chore/nome-da-tarefa
+- `main`
+- `dev`
+- `feature/auth-hardening`
+- `feature/session-security`
+- `feature/sql-safety`
+- `feature/backend-architecture`
+- `feature/api-validation`
+- `feature/typing`
+- `feature/test-coverage`
+- `feature/frontend-redesign`
+- `docs/readme`
+
+Regras para nomear branches de trabalho:
+- usar nomes descritivos em lowercase com kebab-case
+- para evoluções, preferir prefixo `feature/`
+- para documentação, usar `docs/`
+- manter o nome curto, claro e ligado ao objetivo principal do PR
 
 ## 8) Commits
-Usar commits claros no formato:
-- feat: ...
-- fix: ...
-- refactor: ...
-- test: ...
-- docs: ...
-- chore: ...
+Usar commits claros com prefixo e escopo quando fizer sentido.
+
+Padrões recomendados:
+- `feat(auth): secure password hashing`
+- `feat(session): implement secure session flow`
+- `fix(sql): parameterize queries`
+- `refactor(api): split into services and repositories`
+- `feat(validation): add request validation`
+- `feat(types): improve typing`
+- `test(core): add auth tests`
+- `feat(ui): redesign dashboard`
+- `docs(readme): improve documentation`
 
 Exemplos:
-- feat: add dashboard KPI cards
-- fix: handle expired session flow
-- refactor: improve auth service structure
-- test: add auth integration tests
+- `feat(auth): secure password hashing`
+- `fix(sql): parameterize queries`
+- `refactor(api): split into services and repositories`
+- `test(core): add auth tests`
 
 ## 9) Pull Requests
 Todo PR deve ser focado em um assunto principal.
