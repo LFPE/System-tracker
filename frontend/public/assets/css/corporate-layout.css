@@ -1,44 +1,128 @@
 .topbar{
-  height:72px;
-  background:rgba(255,255,255,.88);
-  border-bottom:1px solid var(--border);
-  box-shadow:0 1px 0 rgba(15,23,42,.03);
-  backdrop-filter:blur(14px);
-  padding:0 var(--space-6);
-  gap:var(--space-4);
+  height:76px;
+  position:sticky;
+  top:0;
+  z-index:120;
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding:0 28px;
+  background:rgba(248,250,252,.92);
+  border-bottom:1px solid rgba(148,163,184,.18);
+  box-shadow:0 8px 30px rgba(15,23,42,.06);
+  backdrop-filter:blur(18px);
 }
-[data-theme="dark"] .topbar{background:rgba(18,26,43,.86)}
+[data-theme="dark"] .topbar{
+  background:rgba(15,23,42,.88);
+  border-bottom:1px solid rgba(148,163,184,.14);
+}
+.brand{gap:12px}
 .brand-mark{
-  width:42px;height:42px;border-radius:12px;
-  background:linear-gradient(135deg,#12314f,#1d5fa7);
-  border:none;box-shadow:none;color:#fff;
+  width:44px;
+  height:44px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#103454 0%,#1d5fa7 100%);
+  color:#fff;
+  font-size:13px;
+  font-weight:800;
+  letter-spacing:.08em;
+  box-shadow:0 12px 24px rgba(29,95,167,.22);
 }
-.brand-text h1{-webkit-text-fill-color:initial;background:none;color:var(--text);font-size:16px}
-.brand-text span{font-size:11px;color:var(--text3);margin-top:0}
-.layout{min-height:calc(100vh - 72px)}
+.brand-text h1{
+  margin:0;
+  color:var(--text);
+  font-size:17px;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+.brand-text span{
+  display:block;
+  margin-top:2px;
+  font-size:12px;
+  color:var(--text3);
+}
+.topbar-div{width:1px;height:32px;background:rgba(148,163,184,.2)}
+.topbar-spacer{flex:1}
+.layout{
+  display:flex;
+  min-height:calc(100vh - 76px);
+}
 .sidebar{
-  width:248px;
-  top:72px;height:calc(100vh - 72px);
-  background:linear-gradient(180deg,#10273f 0%,#14324f 100%);
-  border-right:none;
-  padding:20px 14px;
-  gap:4px;
+  width:260px;
+  position:sticky;
+  top:76px;
+  height:calc(100vh - 76px);
+  overflow-y:auto;
+  padding:18px 14px 20px;
+  background:linear-gradient(180deg,#0f2740 0%,#14324e 100%);
+  border-right:1px solid rgba(255,255,255,.04);
 }
-.sidebar-section{color:rgba(226,232,240,.58);font-size:10px;padding:10px 12px 6px}
-.content{padding:28px;max-width:none}
-.sec-hdr{margin-bottom:24px;gap:16px}
-.sec-title{font-size:26px;font-weight:700;color:var(--text)}
-.sec-sub{font-size:14px;color:var(--text3);margin-top:4px}
-.card,.table-wrap,.chart-wrap,.comp-card,.sat-cons-card,.hist-day-hdr,.hist-item,.filter-bar,.steps,.dash-meta-card,.modal,.spotlight-btn,.user-chip,.kpi-pill{
-  box-shadow:var(--shadow);
+.sidebar-section{
+  padding:12px 12px 8px;
+  color:rgba(226,232,240,.55);
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.12em;
+  text-transform:uppercase;
 }
-.card,.table-wrap,.chart-wrap,.comp-card,.sat-cons-card,.steps,.filter-bar,.modal,#spotlight{
-  background:var(--surface);
-  border:1px solid var(--border);
+.content{
+  flex:1;
+  min-width:0;
+  padding:32px;
+  background:transparent;
 }
-.dash-meta-card{
-  background:var(--surface);
-  border:1px solid var(--border);
+.sec-hdr{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:26px;
 }
-.dash-meta-card::before{background:linear-gradient(90deg,var(--blue),transparent)}
-.table-wrap,.chart-wrap,.card,.comp-card{border-radius:var(--rad)}
+.sec-title{
+  color:var(--text);
+  font-size:28px;
+  font-weight:800;
+  line-height:1.1;
+}
+.sec-sub{
+  margin-top:6px;
+  color:var(--text3);
+  font-size:14px;
+}
+.card,
+.table-wrap,
+.chart-wrap,
+.comp-card,
+.sat-cons-card,
+.hist-day-hdr,
+.hist-item,
+.filter-bar,
+.steps,
+.dash-meta-card,
+.modal,
+#spotlight{
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(148,163,184,.18);
+  box-shadow:0 12px 28px rgba(15,23,42,.06);
+  backdrop-filter:blur(10px);
+}
+[data-theme="dark"] .card,
+[data-theme="dark"] .table-wrap,
+[data-theme="dark"] .chart-wrap,
+[data-theme="dark"] .comp-card,
+[data-theme="dark"] .sat-cons-card,
+[data-theme="dark"] .hist-day-hdr,
+[data-theme="dark"] .hist-item,
+[data-theme="dark"] .filter-bar,
+[data-theme="dark"] .steps,
+[data-theme="dark"] .dash-meta-card,
+[data-theme="dark"] .modal,
+[data-theme="dark"] #spotlight{
+  background:rgba(18,26,43,.86);
+  border:1px solid rgba(148,163,184,.14);
+}
+.card,.table-wrap,.chart-wrap,.comp-card,.dash-meta-card{border-radius:18px}
+.dash-meta-card::before{background:linear-gradient(90deg,#1d5fa7,transparent)}

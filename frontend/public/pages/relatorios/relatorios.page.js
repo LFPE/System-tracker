@@ -1,4 +1,4 @@
-import { downloadBlob } from '../../assets/js/shared/download.js';
+import { downloadBlob } from '../../assets/js/core/download.js';
 
 export function createExportModule({
   S,
@@ -18,7 +18,7 @@ export function createExportModule({
 
     try {
       const ExcelJS = window.ExcelJS;
-      if (!ExcelJS) throw new Error('ExcelJS não está disponível');
+      if (!ExcelJS) throw new Error('ExcelJS n\u00E3o est\u00E1 dispon\u00EDvel');
 
       const wb = new ExcelJS.Workbook();
       const ws = wb.addWorksheet('REATs');
@@ -29,7 +29,7 @@ export function createExportModule({
         { header: 'Status', key: 'status', width: 16 },
         { header: 'Motivo', key: 'motivo', width: 20 },
         { header: 'Plano', key: 'plano', width: 14 },
-        { header: 'Análise', key: 'analise', width: 45 },
+        { header: 'An\u00E1lise', key: 'analise', width: 45 },
       ];
       ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0F172A' } };
       ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
@@ -57,13 +57,13 @@ export function createExportModule({
       const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(13);
-      doc.text('TRACKER - Coobrastur - Relatório REATs', 14, 16);
+      doc.text('TRACKER - Coobrastur - Relat\u00F3rio REATs', 14, 16);
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.text(`Gerado em ${new Date().toLocaleString('pt-BR')}`, 14, 22);
       doc.autoTable({
         startY: 28,
-        head: [['Data', 'Hora', 'Consultor', 'Status', 'Motivo', 'Plano', 'Análise']],
+        head: [['Data', 'Hora', 'Consultor', 'Status', 'Motivo', 'Plano', 'An\u00E1lise']],
         body: S.records.map(r => [r.data_ref, r.hora, r.consultor, r.status, r.motivo, r.plano, (r.analise || '').slice(0, 60)]),
         styles: { fontSize: 7, cellPadding: 2 },
         headStyles: { fillColor: [15, 23, 42], textColor: 255, fontStyle: 'bold' },
@@ -105,7 +105,7 @@ export function createExportModule({
       const text = await file.text();
       const data = JSON.parse(text);
       const records = data.records || data;
-      if (!records || typeof records !== 'object') throw new Error('Formato de backup inválido');
+      if (!records || typeof records !== 'object') throw new Error('Formato de backup inv\u00E1lido');
       showLoading();
       const result = await api.post('/reats/import-backup', data.records ? data : { records });
       const [reatsData, satData, satMonthsData] = await Promise.all([
@@ -119,7 +119,7 @@ export function createExportModule({
       populateAllFilters();
       renderDashboard();
       updateTopbarKpis();
-      showToast(`Backup importado! REATs: ${result.reats || 0} | Satisfação: ${result.sat || 0} | Usuários: ${result.users || 0}`);
+      showToast(`Backup importado! REATs: ${result.reats || 0} | Satisfa\u00E7\u00E3o: ${result.sat || 0} | Usu\u00E1rios: ${result.users || 0}`);
     } catch (e) {
       showToast(`Erro: ${e.message}`, 'err');
     } finally {

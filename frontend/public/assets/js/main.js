@@ -16,7 +16,7 @@ const S = {
   satMonths: [],
   editingId: null,
   charts: {},
-  theme: localStorage.getItem('theme') || 'light',
+  theme: localStorage.getItem('theme') || 'dark',
   parsedImport: null,
   parsedSat: null,
 };
@@ -37,13 +37,17 @@ function applyTheme(t) {
   document.documentElement.setAttribute('data-theme', t);
   localStorage.setItem('theme', t);
   const btn = document.getElementById('theme-icon');
-  if (btn) btn.textContent = t === 'dark' ? '\u{1F319}' : '\u2600\uFE0F';
+  if (btn) btn.textContent = 'Tema';
 }
 
 function toggleTheme() {
   applyTheme(S.theme === 'dark' ? 'light' : 'dark');
 }
 applyTheme(S.theme);
+function finishBootstrap() {
+  document.body.classList.remove('app-booting');
+}
+
 
 function fireConfetti() {
   const canvas = document.getElementById('confetti-canvas');
@@ -188,9 +192,9 @@ const { hdlExcel, hdlPDF, hdlExportBackup, hdlImportBackup } = exportModule;
 
 const SPOTLIGHT_PAGES = [
   { id: 'dashboard', icon: '\u{1F3E0}', label: 'Dashboard', sub: 'Vis\u00e3o geral' },
-  { id: 'import', icon: '\u{1F4E5}', label: 'Importar REATs', sub: 'Processar novo arquivo' },
+  { id: 'import', icon: '\u{1F4E5}', label: 'REATs', sub: 'Importação e tratamento' },
   { id: 'history', icon: '\u{1F4CB}', label: 'Hist\u00f3rico', sub: 'Todos os registros' },
-  { id: 'stats', icon: '\u{1F4CA}', label: 'Estat\u00edsticas', sub: 'Rankings e m\u00e9tricas' },
+  { id: 'stats', icon: '\u{1F4CA}', label: 'Relat\u00f3rio Di\u00e1rio', sub: 'Resumo operacional' },
   { id: 'charts', icon: '\u{1F4C8}', label: 'Gr\u00e1ficos', sub: 'An\u00e1lise visual' },
   { id: 'heatmap', icon: '\u{1F525}', label: 'Heatmap', sub: 'Hor\u00e1rios de revers\u00e3o' },
   { id: 'sat', icon: '\u2B50', label: 'Satisfa\u00e7\u00e3o', sub: 'Avalia\u00e7\u00f5es dos clientes' },
@@ -306,6 +310,7 @@ async function checkSession() {
 }
 
 function onLoginSuccess() {
+  finishBootstrap();
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').style.display = 'block';
 
@@ -330,6 +335,7 @@ function onLoginSuccess() {
 }
 
 function showLoginScreen() {
+  finishBootstrap();
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('app').style.display = 'none';
 }
@@ -511,6 +517,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 });
+
+
 
 
 
