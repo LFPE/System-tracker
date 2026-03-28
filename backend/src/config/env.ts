@@ -4,6 +4,9 @@ const DEFAULT_COOKIE_NAME = 'tracker_session'
 const DEFAULT_MAX_AGE = 60 * 60 * 24 * 7
 const DEFAULT_SAME_SITE = 'Strict' as const
 const DEFAULT_HASH_SALT = 'rt_salt_2026_'
+const DEFAULT_PASSWORD_HASH_ITERATIONS = 600000
+const DEFAULT_PASSWORD_HASH_SALT_BYTES = 16
+const DEFAULT_PASSWORD_HASH_KEY_LENGTH = 32
 const DEV_ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
@@ -14,6 +17,11 @@ const DEV_ALLOWED_ORIGINS = [
 function parseMaxAge(value: string | undefined) {
   const parsed = Number(value)
   return Number.isInteger(parsed) && parsed > 0 ? parsed : DEFAULT_MAX_AGE
+}
+
+function parsePositiveInt(value: string | undefined, fallback: number) {
+  const parsed = Number(value)
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback
 }
 
 export function isProductionEnv(env?: Partial<Bindings>) {
@@ -56,5 +64,13 @@ export function getSessionConfig(env?: Partial<Bindings>) {
       ? sameSite
       : DEFAULT_SAME_SITE,
     hashSalt: (env?.SESSION_HASH_SALT || DEFAULT_HASH_SALT).trim() || DEFAULT_HASH_SALT,
+  }
+}
+
+export function getPasswordHashConfig(env?: Partial<Bindings>) {
+  return {
+    iterations: parsePositiveInt(env?.PASSWORD_HASH_ITERATIONS, DEFAULT_PASSWORD_HASH_ITERATIONS),
+    saltBytes: DEFAULT_PASSWORD_HASH_SALT_BYTES,
+    keyLength: DEFAULT_PASSWORD_HASH_KEY_LENGTH,
   }
 }

@@ -295,7 +295,7 @@ npm run dev
 npm run build
 npm run db:local:setup
 npm run local:start
-npm run preview -- --persist-to=./meu_banco
+npm run preview
 npm run deploy
 ```
 
@@ -305,7 +305,7 @@ npm run deploy
 - `npm run build`: gera o build da aplicacao e o bundle SSR do backend
 - `npm run db:local:setup`: prepara o banco local D1
 - `npm run local:start`: prepara banco, builda e sobe a aplicacao localmente
-- `npm run preview`: executa o build em modo local via Wrangler Pages
+- `npm run preview`: executa o build em modo local via Wrangler Pages usando a persistencia em `./meu_banco`
 - `npm run deploy`: gera o build e publica na Cloudflare
 
 ## Como Rodar Localmente
@@ -323,7 +323,7 @@ npm run local:start
 npm install
 npm run db:local:setup
 npm run build
-npm run preview -- --persist-to=./meu_banco
+npm run preview
 ```
 
 ## Fluxo de Desenvolvimento Recomendado

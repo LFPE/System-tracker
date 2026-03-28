@@ -5,8 +5,8 @@
     "dev": "vite",
     "build": "vite build && vite build --ssr backend/src/app.ts --outDir dist",
     "db:local:setup": "node scripts/setup-local-db.cjs",
-    "local:start": "npm run db:local:setup && npm run build && npm run preview -- --persist-to=./meu_banco",
-    "preview": "wrangler pages dev ./dist --local --d1 DB",
+    "local:start": "npm run db:local:setup && npm run build && npm run preview",
+    "preview": "wrangler pages dev ./dist --local --d1 DB --persist-to=./meu_banco",
     "deploy": "npm run build && wrangler pages deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings"
   },

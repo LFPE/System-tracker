@@ -8,4 +8,5 @@ export type Bindings = {
   SESSION_COOKIE_MAX_AGE?: string
   SESSION_COOKIE_SAME_SITE?: 'Strict' | 'Lax' | 'None'
   SESSION_HASH_SALT?: string
+  PASSWORD_HASH_ITERATIONS?: string
 }

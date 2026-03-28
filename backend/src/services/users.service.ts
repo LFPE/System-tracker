@@ -2,7 +2,7 @@ import type { D1Database } from '@cloudflare/workers-types'
 import type { Bindings } from '../config/bindings'
 import type { UserCreateInput } from '../models/user.model'
 import { AppError } from '../utils/http'
-import { hashPass, verifyPass } from '../utils/hash'
+import { hashPassword, verifyPassword } from '../utils/hash'
 
 export async function listUsers(db: D1Database) {
   const result = await db.prepare(
@@ -20,7 +20,7 @@ export async function createUser(db: D1Database, env: Partial<Bindings>, input: 
 
   await db.prepare(
     'INSERT INTO users (login, name, pass_hash, role) VALUES (?, ?, ?, ?)'
-  ).bind(input.login, input.name, await hashPass(input.pass, env), input.role || 'user').run()
+  ).bind(input.login, input.name, await hashPassword(input.pass, env), input.role || 'user').run()
 }
 
 export async function deleteUserById(db: D1Database, id: number) {
@@ -50,11 +50,11 @@ export async function updateOwnPassword(
     throw new AppError(404, 'Usuario nao encontrado')
   }
 
-  if (!(await verifyPass(currentPass, user.pass_hash, env))) {
+  if (!(await verifyPassword(currentPass, user.pass_hash, env))) {
     throw new AppError(400, 'Senha atual incorreta')
   }
 
   await db.prepare('UPDATE users SET pass_hash = ? WHERE id = ?')
-    .bind(await hashPass(pass, env), userId)
+    .bind(await hashPassword(pass, env), userId)
     .run()
 }
